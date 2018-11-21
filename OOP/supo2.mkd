@@ -1,0 +1,328 @@
+4.1
+Vector2D is not more general than Vector3D i.e. there is no conceptual heirarchy
+Additionally, any methods defined in Vector2D will have to be redefined in Vector3D because they perform different operations
+
+4.2
+The default access level assigned by Java is package level I.E. everything in the same package can access the class/field/method. Thus Test & Main1 will compile but Test & Main2 will not:
+Test.java:
+package uk.ac.cam.jhah2.supo2.a;
+public class Test
+{
+	String test = "Hello World";
+}
+
+Main1.java:
+package uk.ac.cam.jhah2.supo2.a;
+public class Main
+{
+	public static void main(String[] args)
+	{
+		Test t = new Test();
+		System.out.println(t.test);
+	}
+}
+
+Main2.java:
+package uk.ac.cam.jhah2.supo2.b;
+import uk.ac.cam.jhah2.supo2.a;
+public class Main
+{
+	public static void main(String[] args)
+	{
+		Test t = new Test();
+		System.out.println(t.test);
+	}
+}
+
+4.3
+// Two sided UML has-a relationships && Annotations on them
+
+4.4
+a) 
+public - No error, code runs fine
+protected - "
+private - Error at compilation
+unspecified (package) - No error, code runs fine
+
+b)
+public - No error, code runs fine
+protected - "
+private - Error at compilation
+unspecified (package) - "
+
+c)
+public - No error, code runs fine
+protected - "
+private - Error at compilation
+unspecified (package) - No error, code runs fine
+
+d)
+public - No error, code runs fine
+protected - Error at compilation
+private - "
+unspecified (package) - "
+
+4.5
+public class OOPSortedLinkedList extends OOPLinkedList
+{
+	@Override
+	public void insert(int val)
+	{
+		if (head == null)
+		{
+			head = new OOPLinkedListElement(val, null);
+			return;
+		}
+
+		OOPLinkedListElement cur = head;
+		while (cur.next != null && cur.value < val) cur = cur.next;
+
+		if (cur.value < val) cur.next = new OOPLinkedListElement (val, null);
+		else
+		{
+			cur.next = new OOPLinkedListElement (cur.value, cur.next);
+			cur.value = val;
+		}
+	}
+}
+
+4.6
+public class OOPLazySortedLinkedList extends OOPLinkedList
+{
+	private int m_sorted = 0; // Position of 1st sorted element
+
+	@Override
+	public void insert (int val)
+	{
+		++m_sorted;
+		super.insert(val);
+	}
+
+	@Override
+	public void remove ()
+	{
+		sort();
+		super.remove();
+	}
+
+	@Override
+	public int nth (int idx)
+	{
+		sort();
+		super.nth();
+	}
+
+	private void sort ()
+	{
+		OOPLinkedListElement lSorted = head; // Points to first sorted LLE
+		for (; m_sorted > 0; --m_sorted) lSorted = lSorted.next;
+
+		for (OOPLinkedListElement cur = head; cur != null && cur != lSorted; cur = cur.next)
+		{
+			if (lSorted == null)
+			{
+				lSorted = new OOPLinkedListElement(cur.value, null);
+				continue;
+			}
+
+			OOPLinkedListElement insert = lSorted; // Place to insert element
+			while (insert.next != null && insert.value < cur.value) insert = insert.next;
+
+			if (insert.value < cur.value) insert.next = new OOPLinkedListElement (cur.value, null);
+			else
+			{
+				insert.next = new OOPLinkedListElement (insert.value, insert.next);
+				insert.value = cur.value;
+			}
+		}
+
+		head = lSorted;
+	}
+}
+
+5.1
+class:
+- Can have state
+- Can be instantiated
+- Cannot have abstract methods
+
+abstract class:
+- Can also have state
+- Cannot be instantiated
+- Must have at least one abstract method
+
+interface:
+- Cannot have state
+- Cannot be instantiated
+- Contains only abstract methods
+- A class can inherit from multiple interfaces but at maximum one class/abstract class
+
+5.2
+Dynamic polymorphism is when a method in a subclass is called through a reference to the base class. This is often useful when you may want to store lots of different subclasses in a single collection.
+Consider an event system: There may be a base class provided along with the system (or IEventHandler interface) which implements a "void handle (Event ev)" method. This expects anything subclassing it to override the method so that it can handle the events it requires.
+Now, in order to pass the events to each subclass instance, they must subscribe themselves to the global EventSystem which will have to store a reference to all of them. The reference will have to be to a common type thus the base class. Therefore, to call the overriding method, dynamic polymorphism must be used.
+
+5.3
+Selective inheritance can always be achieved by splitting the base class into two separate classes: one containing only the methods to be inherited, the other inheriting from the first and also containing the other methods. It is also possible to achieve a similar system using composition as opposed to inheritance. Consequently, selective inheritance adds no new functionality to the language that is not already easily achieved.
+Furthermore, it means the inheritance heirarchy is no longer so rigidly enforced since subclasses do not have to provide all the functionality of their superclasses.
+
+5.4
+public abstract class Student
+{
+	protected int m_ticks = 0;
+	public abstract bool pass();
+}
+public class CSStudent extends Student
+{
+	public bool pass() { return m_ticks >= 20; }
+}
+public class NSStudent extends Student
+{
+	public bool pass() { return m_ticks >= 10; }
+}
+
+5.5
+public abstract class Shape
+{
+	public abstract String getType();
+}
+public class Circle
+{
+	public String getType() { return "Circle"; }
+}
+public class Square
+{
+	public String getType() { return "Square"; }
+}
+public class Oval
+{
+	public String getType() { return "Oval"; }
+}
+public class Star
+{
+	public String getType() { return "Star"; }
+}
+
+5.6
+a)
+O(1) - Access/Modify
+O(n) - Insert (anywhere)
+O(n) - Remove (anywhere)
+O(1) - Insert (at end)
+O(1) - Remove (at end)
+
+b)
+public interface OOPList
+{
+	public int nth();
+	public void insert(int val);
+	public void remove();
+	public int length();
+}
+
+c)
+public class OOPArrayList implements OOPList
+{
+	private int[] m_array = new int[32];
+	private int length = 0;
+
+	public int length() { return length; }
+
+	public int nth(int idx)
+	{
+		return m_array[length - idx - 1];
+	}
+
+	public void remove()
+	{
+		--length;
+	}
+
+	public void insert(int val)
+	{
+		if (length == m_array.length)
+		{
+			int[] newArray = new int[m_array.length * 2];
+			for(int i = 0; i < m_array.length; ++i)
+				newArray[i] = m_array[i];
+			m_array = newArray;
+		}
+
+		m_array[length] = val;
+		++length;
+	}
+}
+
+d)
+O(1) // **Amortised** time
+
+5.8
+public interface INinja
+{
+	public void beANinja();
+	...
+}
+public class Ninja implements INinja
+{
+	...
+}
+public class NinjaEmployee extends Employee implements INinja
+{
+	private final Ninja m_ninja = new Ninja();
+	
+	public void beANinja() { m_ninja.beANinja(); }
+	...
+}
+
+6.1
+public class A
+{
+	A(int x) { ... }
+}
+public class B extends A
+{
+	B() { super(0); ... }
+}
+public class C extends B
+{
+	C() { ... }
+}
+
+6.2
+public void Test() ... declares a method with the same name as the class. It is not a constructor. Therefore, it is never called, x is never set to 7 and 0 is printed.
+
+6.3
+import java.lang.reflect.*;
+public class Main
+{
+	public static void main(String[] args)
+	{
+		Class c = Class.forName(args[0]);
+		for (Method m : c.getDeclaredMethods())
+		{
+			if(Modifier.isPublic(m.getModifiers()))
+				System.out.println("public " + m.getName());
+			else if (Modifier.isPrivate(m.getModifiers()))
+				System.out.println("private " + m.getName());
+		}
+	}
+}
+
+6.4
+a)
+This has the least cost associated with marking and deleting however, after many deletions, the memory region will quickly become fragmented. This will lead require a compaction when a large object is allocated which does not fit within any of the chunks. Additionally, the fragmentation will reduce memory locality which may reduce cache hit rate thereby increasing memory access times. Finally, when a large number of chunks are present, this can take up a large portion of memory and allocating an object will take longer because it must search through all chunks to find one with sufficient space.
+
+b)
+This gets around the problem of memory fragmentation by performing a compaction operation however this will make deletions incredibly expensive because everything stored in memory after a given object will have to be copied.
+
+c)
+The mark-copy scheme makes deletion a relatively cheap operation (deleted objects do not have to be copied to the new region) however marking is expensive since all surviving objects have to be copied. If deletions are frequent and this is run periodically, it may perform better than mark-sweep-compact
+// Can copy in parallel once marked
+
+// Complexity will all be same compact/copy should both be order n
+
+6.5
+If a class is immutable, modifying it's state will require instantiating a new object. Therefore, there will be more heap allocation versus mutable classes and garbage collection will need to be run more frequently to ensure there is space available.
+However, it may be possible to optimise the marking process for such classes: an immutable class will always contain references to the same objects so it should be possible to flatten the marking tree. The performance gain associated with this would likely be negligible.
+
+// Generational garbage collector

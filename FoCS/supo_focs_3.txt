@@ -1,0 +1,178 @@
+8.1
+fun sw f x y = f y x;
+
+Type: ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
+Use:
+Takes a function and two paramters for it which it passes to the function in the opposite order. Both it and the function it takes are curried so it could be useful to partially apply the second argument to a function.
+
+A.5
+The first function is curried and can therefore be partially applied. For example to produce an increment function:
+fun inc x = f 1;
+Its type will be: int -> int -> int
+
+The second will perform the same operation (adding the two parameters x,y) however it makes use of pattern matching on a tuple to pass both x and y to the function. This means it cannot be partially applied.
+Its type will be: (int * int) -> int
+
+8.2
+fun lexOrder f g (a,b) (a',b') =
+	(f a a') orelse (a=a' andalso (g b b'));
+
+If lexOrder is partially applied with the two relevant comparison functions f&g, it can be passed to insort as a comparison function acting on two pairs. It will sort them with the first element as the primary key then the second as the secondary.
+E.g. To compare pairs of type string * int
+fun comp a b = a < b;
+insort (lexOrder comp comp) ...
+
+8.3
+fun map2 f [] = []
+	| map2 f ([]::ls) = [] :: (map2 f ls)
+	| map2 f ((x::xs)::ls) =
+		let
+			val x's::ls = map2 f (xs::ls)
+		in
+			((f x) :: x's) :: ls
+		end;
+
+9.1
+fun mapq f Nil = Nil
+	| mapq f Cons(x, xf) = Cons (f x, fn () => (mapq f (xf())));
+
+9.2
+fun concatq Nil = Nil
+	| concatq (Cons (Nil, qf)) = concatq (qf())
+	| concatq (Cons (Cons (x, xf), qf)) = Cons (x, fn () =>
+		(concatq (Cons (xf(), qf))));
+Issues arise if:
+- All the sequences in the sequence are Nil: Infinite loop from the second match clause
+- One of the sequences is infinite: The others will never be reached
+
+9.4
+datatype 'a lazytree = Lf
+	| Br of 'a * (unit -> 'a lazytree) * (unit -> 'a lazytree);
+
+(* Alternately take items from 2 seq *)
+fun spliceq Nil Nil = Nil
+	| spliceq xq Nil = xq
+	| spliceq Nil yq = yq
+	| spliceq (Cons (x, xf)) yq = Cons (x, fn () => (spliceq yq (xf())));
+
+(* This method assumes a full binary lazy tree and will give keys in the order of a functional array. It works for unbalanced trees however the ordering of the keys won't be very logical *)
+fun lt2q Lf = Nil
+	| lt2q (Br (k, lf, rf)) = Cons (k, fn () => (spliceq (lt2q (lf())) (lt2q (rf()))));
+
+(* Returns items in the first sequence followed by the second *)
+fun joinq Nil yq = yq
+	| joinq (Cons(x, xf)) yq = Cons (x, fn () => (joinq (xf()) yq));
+
+(* A depth-first search of the keys may be preferable when we know the tree is not infinite *)
+fun lt2qdepthfirst Lf = Nil
+	| lt2q (Br (k, lf, rf)) = Cons (k, fn () => (joinq (lt2qdepthfirst lf) (lt2qdepthfirst rf)));
+
+datatype 'a queue = Q of 'a list * 'a list;
+val qempty = Q([],[]);
+fun qhd Q(h::t, _) = h;
+fun enq(x, Q(hs, ts)) = Q(hs, x::ts);
+fun deq Q(x::[], ts) = Q(rev ts, [])
+	| deq Q(x::hs, ts) = Q(hs, ts);
+
+(* Alternatively a true breadth first search will return keys in a logical order while working for infinite trees *)
+fun lt2qbreadthfirst lt = 
+	let
+		fun internal (Q ([],[])) = Nil
+			| internal q =
+				case (qhd q) of Lf => (internal (deq q))
+				| Br (k, lf, rf) => Cons (k, fn () =>
+					(internal enq(enq(q, lf), rf)))
+	in internal enq(qempty, lt) end;
+
+A.6
+
+datatype power = Cons of real * (unit -> power);
+
+val c = 2;
+fun fseries 0 = c
+	| fseries i = 0;
+
+fun lseriesconstant c = Cons (c, fn() => lseriesconstant 0);
+val lseries = lseriesconstant c;
+
+fun fscalarproduct c fs n = c * (fs n);
+
+fun lscalarproduct c (Cons (a, af)) = Cons (c*a, fn() => lscalarproduct c (af()));
+
+fun fsum fs1 fs2 n = (fs1 n) + (fs2 n);
+
+fun lsum (Cons (a, af)) (Cons (b, bf)) = Cons (a+b, fn() => lsum (af()) (bf()));
+
+val fproduct =
+	let
+		fun internal 0 fs1 fs2 n = (fs1 0) * (fs2 n)
+			| internal i fs1 fs2 n = (fs1 i) * (fs2 (n-i)) + (internal fs1 fs2 n (i-1))
+	in internal 0 end;
+
+val lproduct (Cons (a, af)) bl = lsum (lscalarproduct a bl) Cons (0, fn() => lproduct (af()) bl);
+
+10.1
+Advantages:
+- The worst case O(log n) dequeue time is better than the worst case for the other implementation which is O(n) when deq had to reverse the tail
+- It would allow for extension over a traditional queue where an element at any given position within the queue can be found in O(log n)
+
+Disadvantages:
+- The average case dequeue time is worse since for the other implementation it is O(1)
+- The worst/average case enqueue time is worse "
+- Greater memory usage: for each item in the queue there are two pointers to other items whereas in the other implementation there is one pointer per item
+
+A.7
+Breadth First:
+Space complexity: O(n)
+A binary tree with (n-1) elements has 0.5n at the lowest depth which will all be stored in the queue (FIFO) at once when the second lowest depth pass is finished
+
+Depth First:
+Space complexity: O(log n)
+Only the current path is stored in a stack (FILO) which has a maximum length of the depth of the tree (given by log n)
+
+10.3
+fun breadth q =
+	if qnull a then []
+	else if (qhd q) = Lf then breadth (deq q)
+	else let
+		fun internal (Br (v, t, u)) = v :: breadth(enq(enq(deq q), t), u)
+	in internal (qhd q) end;
+
+10.4
+Breadth First Search - Space complexity will be approximately constant
+
+10.5
+Each node will have a value corresponding to the order it is visited in a left to right breadth first search
+
+10.6
+let val x = .1.
+in .2. end;
+Is equivalent to:
+(fn x => .2.) (.1.)
+
+Multiple declarations in the let block can be achieved through currying which is also analogous to nesting let blocks:
+let val y = .1.
+in
+	let val x = .2.
+	in .3. end
+end;
+Is equivalent to:
+(fn y => (fn x => .3.) (.2.)) (.1.);
+
+The example is the same as:
+fun f(a: real, b: real) =
+	(fn c => c*c) (a-b);
+
+A.9
+Path returns a path to an occurence of 7 in a binary tree. The path is a list of 1s and 2s where 1 represents taking the left node at a given branch and 2 represents the right.
+At the base case, if the node is already a 7, the empty list is given since 7 has already been reached.
+Otherwise the left path is taken and 1 is cons-ed onto the path to 7 from the left node.
+The 7 within the tree may however be below the right node. In this case, path will carry on searching to a Lf node where it will raise an exception. This will be handled at the lowest point that the function took a left path. It will backtrack to there taking the right path and cons-ing 2 onto the result.
+
+fun map f [] = []
+	| map f x::xs = (f x) :: map f xs;
+fun prependall a ls = map (fn l => a::l) ls;
+fun allpaths Lf = []
+	| allpaths (Br(v, l, r)) = 
+		(if v=7 then [[]] else []) (* Add the empty list to the returned paths if this is a 7 *)
+		@ prependall 1 (allpaths l) @ prependall 2 (allpaths r);

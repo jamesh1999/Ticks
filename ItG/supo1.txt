@@ -1,0 +1,101 @@
+1. Where colour is used to convey a message (E.g. Green for confirm, red for cancel) - Try to pick another colour combination (E.g. blue/red) or use symbols as well as colours to convey the message
+Ensure foreground/background colours will appear contrasting even to colourblind users
+
+2.
+First intersection at: (1/sqrt(3),1/sqrt(3),1/sqrt(3))
+Second intersection at: (-1/sqrt(3), -1/sqrt(3), -1/sqrt(3))
+
+3. Anti-aliasing helps remove artifacts known as aliasing. These include jagged edges to shapes caused by collision testing with only a single ray (really a pixel should be the average colour of all the rays passing through it) as well as Moire patterns caused by rendering an image with a grid like the grid the rays are directed in.
+Using a random grid is better because:
+	- The eye is less susceptible to random noise than aliasing
+	- It is less likely to cause Moire patterns
+
+1.
+Assuming a monitor with:
+Diagonal length - 24"
+Aspect ratio - 16:9
+Screen-to-eye distance - 20"
+
+=> Pixels along the diagonal = 3715.65....
+=> Resolution = 3239x1822
+
+2.
+Ambient light:
+- Colour of the material
+- Attempt at global illumination assuming reflected light is approximately uniform
+
+Diffuse light:
+- Colour of the material
+- Imperfections in surface of material reflect light equally in all directions
+- Intensity depends entirely on the density of light rays falling on the surface
+
+Specular light:
+- Colour of the light
+- Surface acts like a mirror reflecting more light in the direction where angle of incidence = angle of reflection
+- Intensity depends on:
+	- Intensity of the light
+	- Angle between viewing direction and reflected ray
+	- Roughness/Shinyness of surface
+
+3.
+Object properties:
+- Method to calculate intersection point w/ ray
+- Method to calculate normal @ point
+- "Shinyness" (specular coefficient)
+- Diffuse colour
+
+Light properties:
+- Intensity
+- Colour
+- Position
+
+Frustrum properties:
+- Field of view OR near plane distance (screen to fovea)
+- For ray marching: far plane distance
+
+4.
+for each pixel:
+	r := Ray passing from the fovea through the pixel
+	c := null
+	for each object:
+		if Collision(r, object) is closer than c:
+			c := Collision(r, object)
+
+	illumination := AmbientLighting() * MaterialColour
+	for each light:
+		rl := Ray from light to point of collision
+
+		# Diffuse lighting
+		illumination += Dot(rl, Normal) * MaterialColour
+
+		# Specular lighting
+		rreflected := Reflected light ray in normal
+		illumination += Pow(Dot(rreflected, r), Shinyness)
+		
+	pixel.colour := Saturate(illumination)
+
+5.
+Reflections:
+- At the interface with the reflective material, construct a new ray (the incident ray)
+- Trace the incident ray back until it collides with another object
+- The colour of the reflected ray will be the same as that of the incident ray
+
+Refractions:
+- At the interface between air & a transparent material of a different refractive index construct a new ray
+- The direction of the ray should be determined using Snell's law or Total Internal Reflection
+- Trace back this ray until it collides with another object
+
+- Optionally: Construct two rays at the interface between materials because most transparent materials will also have surface reflections
+
+Shadows:
+- When tracing rays from the object to the light sources, check for further collisions with objects
+- Rays that collide with objects do not transfer light
+
+6.
+Spawning multiple rays:
+As before, one ray passes through each pixel. However, during a collision with an object, multiple child rays will be spawned and their total illumination used to determine the illumination on the object. This can allow for the inclusion of area lights into our lighting model: child rays directed towards different points on a light to determing the fraction of light that can "see" the surface. Alternatively, full global illumination can be achieved by giving the rays a completely random direction using a probability distribution dictated by the specular/diffuse characteristics of the surface. Some of these rays may then hit other objects spawning more child rays (hence objects can cast light on each other).
+
+Random rays from the screen:
+In this case, multiple rays pass through random locations on each pixel. At each collision, the rays new direction is determined randomly from a probability distribution as a result of the characteristics of the material. Sufficient rays will allow for global illumination, soft shadows from area lights and gloss (where reflections are not perfectly smooth).
+Additionally, with this method, a lens can be placed in front of the camera which allows a depth of field effect to be achieved.
+The ultimate pixel colour is determined from the average colour of the rays passing through it. These can even be time averaged to produce effects such as motion blur.

@@ -1,0 +1,142 @@
+11.1
+
+(* Store comparison function with set:
+	Does not have to be passed to each set operation
+	Changing the comparison could change the order of elements required *)
+datatype 'a set = Set of 'a list * ('a -> 'a -> bool);
+(* Exception raised when we perform operations on two sets with comparison functions that disagree *)
+exception InconsistentComparison;
+
+(* Example comparison function for set operations *)
+fun cmp_int x y = x < y;
+
+(* Ensures the comparison functions used in two sets agree *)
+fun safeComp cmp1 cmp2 x y =
+	if (cmp1 x y) = (cmp2 x y) then cmp1 x y
+	else raise InconsistentComparison;
+
+(* Removes elements from an ordered list until it encounters x *)
+fun dropUntil cmp x [] = []
+	| dropUntil cmp x (y::ys) =
+		if (cmp x y) then [] (* Passed location x would have been at *)
+		else if (not (cmp y x)) then y::ys (* x=y *)
+		else dropUntil cmp x ys;
+
+fun isMember x (Set (ys, cmp)) = not (null (dropUntil cmp x ys));
+fun isSubset (Set ([], _)) _ = true
+	| isSubset _ (Set ([], _)) = false 
+	| isSubset (Set (x::xs, cmp1)) (Set (ys, cmp2)) =
+		isSubset (Set (xs, cmp1)) (Set (dropUntil (safeComp cmp1 cmp2) x ys, cmp2));
+
+fun listUnion _ xs [] = xs
+	| listUnion _ [] ys = ys
+	| listUnion cmp (x::xs) (y::ys) =
+		if (cmp x y) then x :: listUnion cmp xs (y::ys)
+		else if (cmp y x) then y :: listUnion cmp (x::xs) ys
+		else x :: listUnion cmp xs ys; (* Include element once if y=x *)
+fun union (Set (xs, cmp1)) (Set (ys, cmp2)) =
+	let val cmp = safeComp cmp1 cmp2
+	in Set (listUnion cmp xs ys, cmp) end;
+
+fun listIntersect _ _ [] = []
+	| listIntersect _ [] _ = []
+	| listIntersect cmp (x::xs) (y::ys) =
+		if (cmp x y) then listIntersect cmp xs (y::ys)
+		else if (cmp y x) then listIntersect cmp (x::xs) ys
+		else x :: listIntersect cmp xs ys; (* Only include if y=x *)
+fun intersect (Set (xs, cmp1)) (Set (ys, cmp2)) =
+	let val cmp = safeComp cmp1 cmp2
+	in Set (listIntersect cmp xs ys, cmp) end;
+
+11.2
+polysum:
+Order - Since the two input polynomials are already decreasing in power, one of m/n will always be the greatest term remaining to be added to the new polynomial. The tests comparing m/n determine which is the greatest and therefore which should be added first.
+Non-Zero Coefficients - The test a+b = 0 determines whether the coefficient in the resulting polynomial will be zero. The term is not added if this is the case therefore there will be no zero coefficients in the resulting polynomial. Additionally, there are no zero coefficients in the input polynomials so in the cases where m>n or n>m no zero coefficients will be introduced since the term is copied.
+
+polyprod:
+Order - In all the base cases, there is only scalar multiplication which will not affect the exponents. Therefore, the exponents will remain decreasing as they are initially. To combine the subproblems, polysum is used which maintains the decreasing order provided its input is decreasing.
+Non-Zero Coefficients - The base cases cannot introduce any zero coefficients since there are none in any of the input polynomials so there is no multiplying by 0 terms. In the combination steps, no 0 coefficients will be introduced since, as previously mentioned, polysum will not introduce new zero coefficients.
+
+11.3
+In the worst case, the two polynomials 'ts' and 'us' are of equal length and have no elements that overlap. Additionally, a term will be taken from each polynomial alternately.
+
+In the base case, 'ts' had been reduced to the empty list and 'us' has one term remaining. This term is returned taking 1 unit of time.
+
+In each recursive call, one element will be removed from either 'ts' or 'us' hence (m + n + - 1) recursive calls will be required to reach the base case. Each call cons-es this element onto the extisting polynomial. This operation takes constant time (so 1 unit). Therefore a total of (m + n - 1) * 1 + 1 = m + n units of time will be spent => O(m + n)
+
+A.10
+'a -> int
+
+A.11
+When reassigning L to be a new list, the original list still exists in memory however L points to the new one.
+If L is a mutable list, the same location in memory is updated to reflect the new value of L. This means that other references to L will also have their value updated.
+
+A.12
+The while construction is a command and therefore returns unit. It therefore cannot do anything unless the body of the loop has 'side effects'. Thus it is only useful with procedural programming.
+
+A.13
+A dictionary is a key-value store where the keys are strings. These can be ordered lexicographically and stored in a binary search tree along with their values as pairs (string * 'a). The comparison function used by the binary tree should place keys that are lexicographically smaller to the left and ignore the value of the 'a data.
+An update operation has complexity O(n log n) since the depth of the k-v pair within the tree is (log n) hence it takes this many recursive calls to locate the pair and updating the tree requires the construction of (log n) new branch nodes.
+
+A.14
+(* Simultaneously reverses a list and maps a function over it *)
+fun revMap f =
+	let
+		fun revHidden acc [] = acc
+			| revHidden acc (x::xs) =
+				revHidden (f x :: acc) xs
+	in revHidden [] end;
+
+(* 'a fan -> 'a fan *)
+fun flip (Wave (v, ws)) = Wave (v, revMap flip ws);
+
+fun map f [] = []
+	| map f (x::xs) = f x :: map f xs;
+
+(* ('a -> 'b) -> 'a fan -> 'b fan *)
+fun paint f (Wave (v, ws)) = Wave (f v, map (paint f) ws);
+
+(* 'a fan -> 'b fan -> bool *)
+fun same_shape (Wave (_, [])) (Wave (_, [])) = true
+	| same_shape (Wave (v1, x::xs)) (Wave (v2, y::ys)) =
+		(same_shape x y) andalso (sameshape (Wave(v1, xs)) (Wave(v2, ys)))
+	| same_shape _ _ = false; (* One empty the other not *)
+
+foldr is a reverse fold with accumulator e. It will end up calling paper once on every node of the fan each time adding 1 to the accumulator. Therefore it will return the total number of nodes within the fan.
+
+A.15
+(* Raised when the function cannot find any path satisfying the predicate *)
+exception NoPath;
+
+(* It is expected that the predicate is of type 'a list -> bool where the values at the end of the list represent values encountered at the top of the tree and values towards the start are those further down *)
+(* Function could be composed with a list reverse to get the path from the root to the leaf *)
+fun find_path p =
+	let
+		fun find_path_acc acc (Twig v) =
+				if p (v::acc) then (v::acc)
+				else raise NoPath
+			| find_path_acc acc (Br (v, l, r)) =
+				find_path_acc (v::acc) l
+				handle NoPath => find_path_acc (v::acc) r
+	in find_path_acc [] end;
+
+fun all_paths p =
+	let
+		fun all_paths_acc acc (Twig v) =
+				if p (v::acc) then [v::acc]
+				else []
+			| all_paths_acc acc (Br (v, l, r)) =
+				(all_paths_acc (v::acc) l) @ (all_paths_acc (v::acc) r)
+	in all_paths_acc [] end;
+
+fun all_pathq p =
+	let
+		(* This time the accumulator contains a list of pairs of nodes where we took the left path and their paths *)
+		fun all_pathq_acc ((next_tree, next_path)::acc) path (Twig v) =
+				if p (v::path) then Cons(v::path, fn() => all_pathq_acc acc next_path next_tree)
+				else all_pathq_acc acc next_path next_tree
+			| _ path (Twig v) = Cons(v::path, fn() => Nil)
+			| all_pathq_acc acc path (Br (v, l, r)) =
+				all_pathq_acc ((r, v::path)::acc) (v::path) l
+	in all_pathq_acc [] [] end;
+

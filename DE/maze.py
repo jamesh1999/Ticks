@@ -13,7 +13,7 @@ BLUE = (0,0,255)
 
 TARGET_FPS = 60
 TARGET_UPS = 600
-LONG_EDGE = 1000
+LONG_EDGE = 1200
 
 # Environment parameters
 MAZE = pygame.image.load("maze1.png")
@@ -69,7 +69,7 @@ class StateMachine(object):
 
 			self.__state = transition[0]
 			break;
-		
+
 		self.__outputs = self.__machine[self.__state][0]
 		return self.__outputs
 

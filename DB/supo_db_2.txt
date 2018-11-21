@@ -1,0 +1,38 @@
+1. WHERE clauses treat NULL values as false. This means that in the second query all rows with NULL in the position column will be ignored. On the other hand, the first query includes them thus in a database containing NULL values in this column they will not return the same results. (Assuming the first query should be 'where not((not (position is null)) and position = 17)')
+
+2. (a and b) is null
+((a is null) and (b is null)) or (a and (b is null)) or ((a is null) and b)
+
+3. The two DeMorgan derived expressions will both have the same value as their equivalent expressions in 3-valued logic.
+'a or (not a)' is not always two in 3-valued logic and should be changed to 'a or (not a) or (a is null)'
+
+4. Pros to a fixed schema:
+- It is immediately obvious what information is contained within the database: in cypher you would have to query all the nodes to see all of the different attributes that may be stored
+- It encourages consistency in how the data is stored across multiple nodes: in cypher, the user of the database may be more inclined to introduce a new attribute when none of the current ones quite fit. A fixed schema would encourage them to find a way either to generalize one of the current columns to encorporate the new data or to introduce a new column entirely perhaps using it for other entities in the database too.
+Cons of a fixed schema:
+- Leads to a lot of redundancy when the data within the database requires different attributes. The unused ones will usually be filled with nulls which is a waste of space.
+- When adding a new attribute, a fixed schema requires the insertion of an entire column which would be an expensive operation to perform. In cypher, only the one attribute on the one node must be added in.
+
+5. In some datasets, it would not make sense to translate existing SQL-based applications into Cypher: consider the case where your dataset consists only of 1-to-1 relationships. In this scenario, there is no possible way for long paths to exist within the entity relationship diagram thus Cypher offers no advantage over SQL.
+In a dataset containing more many-to-1/1-to-many/many-to-many relationships however, Cypher would offer a greater advantage because it is conceivable that queries will take a form more similar to a path through a graph which is exactly how it would be represented in Cypher.
+
+6.c. 3 Returns a difference result
+Consider the database where R has the relation:
+(1, 1)
+And S has the relation:
+(b, 2)
+where b <> 1
+
+1 and 2 both return no relations
+3 returns (1,2)
+
+7.b.
+Similarities:
+- The operations supported by SQL and relational algebra are the same (Sigma -> WHERE, Pi -> SELECT DISTINCT, JOINS etc)
+- Both relational algebra and SQL work on groups of relations with a common schema
+
+Differences:
+- SQL supports NULL values (Uses 3-valued logic) whereas the relational algebra does not
+- SQL by default does not 'SELECT DISTINCT' whereas relational algebra (being based on set theory) will not return duplicate relations by default
+
+7.c. Yes (Proof on PDF)
