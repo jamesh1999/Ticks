@@ -1,0 +1,6 @@
+<scene>
+<ambient-light colour="#333333"/>
+<point-light x="1" y="3" z="2" colour="#B3DDFF" intensity="100"/>
+<point-light x="-5" y="1" z="4" colour="#FFB0B2" intensity="100"/>
+<bumpy-sphere x="0.0" y="0" z="3.5" radius="0.7" colour="#FAA000" bump-map="bumpmap.png"/>
+</scene>

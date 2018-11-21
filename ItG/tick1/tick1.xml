@@ -1,0 +1,9 @@
+<scene>
+  <ambient-light colour="#010101"/>
+  <point-light x="2" y="2" z="4.5" colour="#FFFFFF" intensity="80"/>
+  <point-light x="-2" y="2.5" z="1" colour="#AAAAFF" intensity="50"/>
+  <sphere x="-0.95" y="-0.21884" z="3.63261" radius="0.35" colour="#FF1D25"/>
+  <bumpy-sphere x="-.4" y="0.5" z="4.33013" radius="0.7" colour="#0071BC" bump-map="height.png"/>
+  <sphere x="0.72734" y="-0.35322" z="3.19986" radius="0.45" colour="#3AA010"/>
+  <plane x="0.0" y="-0.10622" z="4.68013" nx="0" ny="4.2239089012146" nz="-2.180126190185547" colour="#111111"/>
+</scene>
