@@ -79,7 +79,7 @@ public class ArrayLife
 	{
 		Scanner sc = new Scanner(System.in);
 		String userResponse = "";
-		while (userResponse.equals("q"))
+		while (!userResponse.equals("q"))
 		{
 			print();
 			userResponse = sc.nextLine();
