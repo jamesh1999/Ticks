@@ -1,0 +1,74 @@
+1.
+Document database:
+Movie is inserted as a single string of JSON containing all of its attributes. This is done through the MovieDB.putMovie(String) method. Certificates, credits (assuming the people are already in the database), genres, keywords, languages, locations and release dates will all be contianed in the JSON string.
+Relational database:
+- First the movie is added to the movie table and assigned an ID
+- All the credit entries must be inserted one at a time into the credits table
+- The certificate is entered into the certificates table and linked to the movie with the movie ID
+- Etc etc. for genres, keywords, languages, locations & release dates into their respective tables
+Each of these uses a SQL "INSERT INTO ... VALUES ..." query
+
+2. (In pseudocode)
+
+bacon_numbers := [(actor, null) for all actors in db]
+Set Kevin Bacon's number to 0
+
+num := 0
+while There are actors without a bacon number:
+	for (actor, number) in bacon_numbers:
+		if num = number:
+			for movie in movies actor has been in:
+				for other in actors in movie:
+					bacon_numbers[other] := min(bacon_numbers[other], num + 1)
+	num := num + 1
+
+In neo4j we make use of the allshortestpaths() function:
+match path = allshortestpaths((p:Person)-[:ACTS_IN*]-(kb:Person))
+where kb.name = 'Bacon, Kevin'
+return distinct p.name, length(path)/2;
+
+3.
+You could design a representation where:
+Every JSON object is an entity
+All individual values (I.E. not lists/objects) are attributes that entity has e.g. ID/Year
+All other values refer to other entities which have relationships to this entity
+HOWEVER any value in a list or otherwise that can be considered an ID actually denotes a relationship with an entity with the corresponding ID
+
+It would be possible to automate this process. It should also be possible to determine the nature of various relationships based on whether lists are used or single IDs.
+
+4.
+a)
+Online Transaction Processing - A database optimised for heavy write loads. This means redundancy is limited. The use cases for OLTP tend to be daily operations of whichever application, service etc is using the DB
+b)
+Online Analytical Processing - A database optimised for heavy read loads. This means there is high redundancy to reduce query time. Typically, this type of database will be used to archive large amounts of historical information.
+c)
+OLTP DBs tend to retrieve entire rows at a time and not perform DB wide operations. This favours a row oriented implementation. OLAP DBs on the other hand often perform DB-wide operations which often favours a column orientated implementation instead.
+
+OLTP databases also benefit from reduced redundancy to speed up writes. OLAP databases do not have this restriction thus SQL aggregation is often used to flatten tables. Sometimes over simple flattening cross tabulation is used: some data values will also be used as extra column names. This can further improve read times.
+d)
+- NoSQL DBs do not have schemas that need to be adhered to. This might make them better suited to irregular data. OLAP tends to focus on large amounts of regularly structured data because this is easier to aggregate in useful ways.
+- NoSQL DBs may be better suited to store historical data (like OLAP) since while they do not support ACID they support CAP which guarantees **EVENTUAL** consistency. Since analysis of historical data is unlikely to be affected by the omission of a few recent datapoints, eventual consistency is acceptable.
+e)
+Consider an online shop such as amazon
+This shop allows people to sign up as vendors to sell their products
+Consequently the selection of products on offer is frequently changing
+They also need to keep track of the current orders being placed and change their statuses as required
+Because of the high write frequency associated with these two datasets and their high reqularity they would be best suited for an OLTP DB.
+
+This shop also requires that all historical pricing of items be recorded as well as all items that were previously on sale and all completed transactions. This data will be analysed on a large scale for product recommendations, advertising etc
+The queries associated with this data therefore will run best on an OLAP DB.
+
+Finally, for each product and vendor they support adding tags:
+For vendors these tags may be contact details (phone, email addresses, websites, facebook, twitter, other forms of social media...)
+For products they may be specific details (colour, size, use by dates for perishables, CPUs for computers, road bike vs mountain bike for bikes, surface finish for cars, storage for phones...)
+
+This data is semi-structured and storing it in a fixed schema database would likely lead to a lot of redundancy. Therefor it is best suited for a NoSQL DB which uses a JSON store.
+
+
+To implement this system the company:
+Creates an OLTP DB for operations (current products, current orders, vendors, users)
+
+Creates an OLAP DB for analytics. This synchronises with the OLTP DB on a daily basis storing all the newly completed orders (which are then removed from the OLTP DB to reduce size) and the current pricing of all items.
+
+Creates a NoSQL DB with each object storing the corresponding vendor/item ID used in the operations DB. This allows linking of unstructured information to that from the operations DB.
+
