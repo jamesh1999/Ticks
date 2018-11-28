@@ -1,0 +1,161 @@
+Warm Up
+=======
+1. OpenGL is an open source, cross platform API providing functionality for the rendering of 2D and 3D graphics.
+
+It is an API (application programming interface) because the purpose of OpenGL is to provide a common interface to applications wishing to make use of the graphics hardware on a system. This interface is hardware independant since it is the job of OpenGL to abstract away low level device calls.
+
+2.
+Pros of triangles:
+- All vertices are coplanar => To generate the properties for any point on a triangle we assume we can linearly interpolate the values of the vertices
+- They can be used to make any n-vertex face => Easy to construct any solid out of them
+- 3 vertices can have clockwise or anticlockwise winding => We can define triangles to be one sided i.e. they are only visible if they are wound clockwise from the perspective of the renderer. Therefore we can perform backface culling after the clipping stage of the graphics pipeline thus halving (more or less) the work for later pipeline stages
+
+Cons of triangles:
+- For larger n-vertex coplanar faces it may be inefficient to use triangles where a single primitive of n vertices could instead be sent to the GPU. However this is mitigated by the use of a vertex buffer and an index buffer: Only n vertices need be placed into the vertex buffer then the index buffer tells the GPU which of these vertices to use to construct the n-2 triangles for the face
+- It is impossible to represent curved surfaces exactly. Interpolation of normals helps with this but the edge of the object in question will always be made up from distinct straight lines
+- An object represented by triangles is just a surface and has no volume. This may introduce errors if say the camera is positioned within the object.
+
+Alternative representations:
+Tetrahedra?
+While this resolves the volume issue and contains sufficient information to tell whether the camera is inside an object, it is not an efficient choice. Many things (particles, the sky...) can be approximated as planes however the option to represent them as such is lost using 3 dimensional primitives. Also it may be harder to convert models into this format since they have to be solid volumes and the software has to know what is inside the model vs outside. (These tools do exist however they are more used in CAD)
+
+Triangle strips?
+Just a variation upon triangles which is already implemented in DirectX and OpenGL. This circumvents the need for a separate index buffer by assuming all vertices passed to the GPU represent a single continuous strip of triangles.
+
+Quadrilaterals?
+It would be just as possible to represent models with quadrilaterals as with triangles (consider the case where every quad has two vertices at the same location). However, for this representation more data is required per primitive (4 vertices rather than 3) which might make it less efficient to use.
+
+Parametrised Surfaces?
+This could allow us to resolve the issue of curved surfaces having no exact representation but something along these lines would introduce significant complexity. Consider, running the pixel shader on one pixel: there is no trivial way to determine what point on the surface is located at this pixel because we cannot simply linearly interpolate the vertices like with coplanar faces. Additionally, normals, tex coords, tangent vectors etc would become functions of the parameters of the surface. The alternative solution (approximating the surface in question with a larger number of triangles) has sufficiently good results while performing better.
+
+The Pipeline
+============
+1.
+(First) Vertex Shader - Programmable stage that operates on vertices (Common functions: multiplying by MVP matrices, calculating tangential vectors for bump maps, per vertex lighting)
+Primitive Setup - Takes the vectors and assembles them into primitives based on the input layout (triangle_list, triangle_strip)
+Clipping - 
+	First we perform a viewport cull: Primitives that would be rendered entirely off screen are dropped
+	Then clipping takes place and large triangles that are partially in view but extend far off screen are 'clipped' i.e. their shape is adjusted so they appear entirely within the guard band
+	Finally we perform a near/far plane cull as well as backface culling
+Rasterization - Determines which pixels are covered by the primitive and generates the data required to render them (by interpolating the vertex data)
+(Last) Fragment shader - Programmable stage called per pixel (Common functions: Shading, saving other useful information to a buffer such as depth for a shadow map or normals, tex coords for a g buffer)
+
+2.
+in - A variable the shader expects to receive from the previous pipeline stage
+out - A variable that will be passed by the shader to the next pipeline stage
+uniform - A global variable (will be the same for all vertices/fragments etc.) that can be set from the application through API calls
+
+3.
+function draw_triangles(triangles):
+	for tri in triangles do
+		for px in screen_width do
+			for py in screen_height do
+				if Covers(tri, (px, py)) then
+					if CurrentZ(px, py) > GetZ(tri, (px, py)) then
+						SetPixel(FragmentShader((px, py), tri))
+						SetZ((px, py), GetZ(tri, (px, py)))
+
+4.
+VertexBuffer - A block of memory that stores per-vertex data required for rendering. The data will be a single attribute E.g. all the normals or all the colours...
+IndexBuffer - A block of memory that defines primitives by giving the indices of the vertices to use in their assembly
+VertexArrayObject - Groups together vertex buffers so that all data for a given vertex (normal, position, etc...) is accessible
+
+5.
+6 * 2 * 3 = 36
+
+6.
+The model transform converts from the model's local coordinates to global coordinates: the relative positions of the vertices in the model to world space.
+The view transform is essentially the inverse of the transform for the "camera". This translates coordinates from world space to their relative positions from the camera.
+These two transforms are usually represented by a single TRS matrix (translate-rotate-scale in reverse order)
+
+The projection transformation converts from these relative coordinates to clip space. (Not quite normalized device coordinates) At this point we are still expecting the vector to be divided through by it's w component. This transformation may represent perspective or othographic projection.
+
+Homogeneous coordinates mean we represent a 3D point using a 4D vector with the 4th (w) component usually set to 1. This allows translations to be represented where they cannot usually (because a matrix transform must leave the origin fixed).
+
+7.
+a) i) (x, y, z) => (x, y, z, 1)
+	  (x, y, z, w) => (x/w, y/w, z/w)
+
+   ii) Block a: Rotations, scales, shears, (reflections a special case of scales), and combinations of these
+       Block b: Translations only
+       Block c: Perspective projection (equal scaling of components inversely proportional to a linear combination of said components)
+       Block d: Scales (all components scaled equally)
+
+   iii) The first matrix will perform perspective projection converting the vector: (x, y, z, 1) => (x, y, z, z)
+   		This then represents the point at: (x/z, y/z, 1)
+
+   		The second performs (x, y, z, 1) => (x + pz - p(1+r), y + qz - q(1+r), z + rz - r(1+r), z - r)
+   		Which represents the point at: ((x-p) / (z-r) + p, (y-q) / (z-r) + q, 1 + r)
+   		This represents a sequence of 3 transformations:
+   			1. A translation by the vector (-p, -q, -r)
+   			2. A perspective projection
+   			3. The inverse of the first translation i.e. (p, q, r)
+
+b) i)
+T x R x S = M where
+
+S =
+3/sqrt(2) 0         0
+0         3/sqrt(2) 0
+0         0         1
+
+R =
+ sqrt(2)/2  sqrt(2)/2 0
+-sqrt(2)/2  sqrt(2)/2 0
+ 0          0         1
+
+T =
+1 0 4
+0 1 1
+0 0 1
+
+M =
+ 3/2 3/2 4
+-3/2 3/2 1
+ 0   0   1
+
+ii) The same transformation applied to A' B' C' D' gives
+A'' = (11.5, -3.5, 1)
+B'' = (16, 8, 1)
+C'' = (20.5, -3.5, 1)
+D'' = (16, 1, 1)
+
+8.
+a) i) Ambient Illumination - The illumination (assumed to be uniform) from the light rays scattered off of other surfaces within the scene
+   ii) Diffuse Reflection - Assumes a perfectly matte surface where reflected light depends only on the angle of the incident light on the surface. Light is therefore emitted evenly in all directions. Determined by k (L . N) where k is some constant for the surface, L is the normalised vector from the surface to the light source and N is the surface normal.
+   iii) Specular Reflection - Assumes a shiny surface where reflected light is biased towards the direction of a perfect reflection. This is an approximation with no physical meaning for its derivation and has the value k (R.V) ^ n where k is some constant, R is the normalised reflection vector, V is the normalised view vector and n is a constant of "shinyness" (high n leads to less scattered reflections)
+
+b) i) Gouraud Shading uses only the diffuse and ambient components of the lighting calculation. These are calculated on a per-vertex basis using the normal at that vertex and the resultant colours can be interpolated to give the colour for any individual pixel.
+   ii) Phong Shading additionally makes use of the specular component. This prevents the colour from simply being linearly interpolated thus it must be calculated on a per pixel basis. This is done using an interpolated normal from the vertices.
+
+c) Gouraud - In the vertex shader: The resultant image would be the same in both cases however this will perform the calculation the fewest number of times and will thus be more efficient.
+Phong - The specular component cannot be calculated in the vertex shader because it is nonlinear. Therefore the calculations should be done in the pixel shader.
+
+9.
+Normals should be:
+- Rotated as usual w/ model
+- Not translated
+- Scaled differently
+
+When the axes are scaled by different amounts, the angle of surfaces changes. To account for this, consider the case where a single axis is scaled by a factor f. To adjust the normal, we should multiply the other axes by this factor f. However, this gives the a vector in the same direction as if we had just scaled the given axis by f^-1.
+Therefore, if our model transform M = T x R x S, our normal transform M' = R x S^-1
+
+Using two nice properties about R and S:
+R^-1 = transpose(R)
+S = transpose(S)
+and ignoring the translation T because we will keep setting the w component of our normals to 0 we get:
+M' = R x S^-1
+   = transpose(R)^-1 x transpose(S)^-1
+   = transpose(M)^-1
+
+Thus normals should use the inverse transpose transformation matrix
+
+10.
+Z buffering:
+For each fragment:
+	Get the current minimum z value from the z buffer
+	If this fragment has a lower z value:
+		Update the minimum z value
+		Continue to draw the fragment and update the pixel in the screen buffer
+
+During z buffering, we write the NDC z coordinate to a Z buffer. This will have integer format so it is useful to be able to say the z coordinate is bound by a given interval [-1, 1] in the case of OpenGL. We also wish to be able to set the near and far plane distances in the view frustrum. Therefore, I would use the matrix on slide 91 since it maps the point at z=d to the z value 1 and all points between there and the camera will have values in the interval [0, 1].

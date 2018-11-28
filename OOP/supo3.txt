@@ -1,0 +1,347 @@
+7.1
+- Elements within a TreeSet are ordered which allows for O(log n) finding complexity whereas the other collections are unordered and provide O(n) complexity
+- Tree set hides the notion of position within the collection from the user however the other collections expose this
+- Tree set is based on a red black tree (auto balancing tree datastructure) which will have O(log n) insertion and removal complexity. ArrayList and Vector both are indexed regions of memory with O(1) random access and append/removal from the end run in amortized constant time. Removal/insertion elsewhere is linear. LinkedList on the other hand is implemented as a doubly linked list (each element has a next & previous reference). All operations are linear apart from those using the head/tail.
+- Vector is synchronised. This means concurrent accesses from multiple threads will result in deterministic behaviour. The other collections on the other hand are not.
+
+7.2
+public class Point3 implements Comparable<Point3>
+{
+	private final float x;
+	private final float y;
+	private final float z;
+
+	public Point3(float x, float y, float z)
+	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
+
+	...
+
+	@Override
+	public int compareTo(Point3 other)
+	{
+		if (z != other.z) return Float.compare(z, other.z);
+		if (y != other.y) return Float.compare(y, other.y);
+		return Float.compare(x, other.x);
+	}
+}
+
+7.3
+public class ExamResults
+{
+	private TreeMap<String, float> studentMarks;
+
+	private class Student implements Comparable<Student>
+	{
+		public String name;
+		public float mark;
+
+		public Student(String name, float mark)
+		{
+			this.name = name;
+			this.mark = mark;
+		}
+
+		@Override
+		public int compareTo(Student other)
+		{
+			if (mark != other.mark) return Float.compare(mark, other.mark);
+			return String.compare(name, other.name);
+		}
+	}
+
+	public ExamResults()
+	{
+		marks = new TreeMap<String, float>();
+	}
+
+	public List<String> GetStudents()
+	{
+		return new LinkedList<String>(marks.navigableKeySet());
+	}
+
+	public List<String> NPercent(float n)
+	{
+		List<Student> students = getSortedByMarks();
+
+		// Number of students whose names we shall return
+		int number = (int) (n / 100.0f * students.size());
+		ArrayList<String> names = new ArrayList<String>();
+		for(int i = 0; i < number; ++i)
+			names.add(students.get(i).name);
+
+		return names;
+	}
+
+	public float Median()
+	{
+		List<Student> students = getSortedByMarks();
+
+		int idx = (students.size() - 1) / 2;
+
+		if(students.size() % 2 == 1)
+			return students.get(idx).mark;
+		return (students.get(idx).mark + students.get(idx+1).mark) / 2.0f;
+	}
+
+	private List<Student> getSortedByMarks()
+	{
+		ArrayList<Student> students = new ArrayList<Student>();
+		for (String n : studentMarks)
+			students.add(new Student(n, studentMarks.get(n)));
+
+		return Collections.sort(students);
+	}
+}
+
+7.4
+Since strings in java are immutable, the compiler optimises the second excerpt: java will construct a constant string pool and there will be a single entry for the string "Hi". Both s3 and s4 will be references to this string thus they are equal and true will be printed.
+For s1 and s2, two new strings are constructed each containing "Hi". However, since they are references to different strings, they are not equal and false is printed.
+
+7.5a
+public void insert(Car c)
+{
+	int i = 0;
+	while(i < collection.size() 
+		&& String.compare(collection.get(i).manufacturer, c.manufacturer) < 1)
+		++i;
+
+	collection.add(i, c);
+}
+
+7.5b
+public class Car implements Comparable<Car>
+{
+	...
+
+	@Override
+	public void compareTo(Car other)
+	{
+		if(!manufacturer.equals(other.manufacturer))
+			return String.compare(manufacturer, other.manufacturer);
+		return Int.compare(age, other.age);
+	}
+}
+public void insert(Car c)
+{
+	int i = 0;
+	while(i < collection.size() && collection.get(i).compareTo(c) < 1)
+		++i;
+
+	collection.add(i, c);
+}
+
+7.6
+public class SortedCSV
+{
+	private class IntegerPair implements Comparable<IntegerPair>
+	{
+		int primary;
+		int secondary;
+
+		public IntegerPair(int p, int s)
+		{
+			primary = p;
+			secondary = s;
+		}
+
+		@Override
+		public int compareTo(IntegerPair other)
+		{
+			if(primary != other.primary) return Integer.compare(primary, other.primary);
+			return Integer.compare(secondary, other.secondary);
+		}
+	}
+
+	public static void main(String[] args) throws IOException
+	{
+		FileReader fr = new FileReader(args[0]);
+		BufferedReader br = new BufferedReader(fr);
+
+		ArrayList<IntegerPair> pairList = new ArrayList<IntegerPair>();
+
+		String line;
+		while((line = br.readLine()) != null)
+		{
+			String[] parts = line.split(",");
+			pairList.add(new IntegerPair(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])));
+		}
+
+		pairList = Collections.sort(pairList);
+		
+		StringBuilder sb = new StringBuilder();
+		for(IntegerPair pair : pairList)
+		{
+			sb.append(pair.primary);
+			sb.append(',');
+			sb.append(pair.secondary);
+			sb.append('\n');
+		}
+
+		System.out.println(sb.toString());
+	}
+}
+
+8.1
+public class EmailException extends Exception
+{
+	public EmailException(String msg)
+	{
+		super(msg);
+	}
+}
+public class RetValTest
+{
+	public static String sEmail = "";
+
+	public static void extractCamEmail(String sentence)
+	{
+		if(sentence == null || sentence.length() == 0)
+			throw new EmailException("Supplied string is empty");
+
+		String[] tokens = sentence.split(" ");
+		for (int i = 0; i < tokens.length(); ++i)
+		{
+			if(!tokens[i].endsWith("@cam.ac.uk")) continue;
+
+			sEmail = tokens[i];
+			return;
+		}
+
+		throw new EmailException("No @cam address in supplied string");
+	}
+
+	public static void main(String[] args)
+	{
+		try
+		{
+			RetValTest.extractCamEmail("My email is jhah2@cam.ac.uk");
+			System.out.println("Success: " + RetValTest.sEmail);
+		}
+		catch (EmailException e)
+			System.out.println(e.getMessage());
+	}
+}
+
+8.2
+public class NRSqrt
+{
+	public static final EPSILON = 1E-10;
+	public double sqrt(double sq) throws Exception
+	{
+		if(sq < 0.0) throw new Exception("Expected a positive value");
+
+		double xPrev = 1.0;
+		double x = 0.5 * (xPrev + sq/xPrev);
+
+		while (x - xPrev > EPSILON)
+		{
+			double xNew = 0.5 * (x + sq/x);
+
+			assert Math.abs(x - xPrev) > Math.abs(xNew - x) : " Diverging";
+			xPrev = x;
+			x = xNew;
+		}
+
+		return x;
+	}
+}
+
+8.3
+Abuses the exception system to return a value from a recursive call when this could be achieved directly:
+private int powaux(int x, int v, int n)
+{
+	if (n == 0) return v;
+	return powaux(x, v*x, n-1);
+}
+Not only is this needlessly complicated, it is counterintuitive and makes the code less readable.
+
+Despite over-using the exception system, the code does not address the exceptions that could arise during its computation: Consider a negative value for n which will give rise to infinite (until overflow stack/integer) recursive calls of powaux. This case should return an exception to the caller. Additionally, there is the issue of stack overflow from a large but positive n. The code should handle this case and return an appropriate message E.g. "Exponent too large"
+Finally, the use of recursion when iteration can be used is incredibly bad practice since tail call optimisation is not in place in Java. This will result in excessive overhead from stack frame allocation etc as well as the possibility of stack overflow.
+
+9.1
+public class OOPLinkedList implements Clonable
+{
+	private class OOPLinkedListElement implements Clonable
+	{
+		public OOPLinkedListElement next;
+		public int val;
+
+		public OOPLinkedListElement(int val, OOPLinkedListElement next)
+		{
+			this.next = next;
+			this.val = val;
+		}
+
+		public OOPLinkedListElement clone()
+		{
+			OOPLinkedListElement elem = (OOPLinkedListElement)super.clone();
+			if (next != null) elem.next = next.clone();
+
+			return elem;
+		}
+	}
+
+	private OOPLinkedListElement head;
+
+	public OOPLinkedList clone()
+	{
+		OOPLinkedList l = (OOPLinkedList)super.clone();
+		l.head = head.clone();
+		return l;
+	}
+}
+
+9.2
+A marker interface is an empty interface which is used to label java classes.
+
+9.3
+If SomeOtherClass has any state, this will not be cloned to SomeClass. Additionally, clone() is not supposed to invoke the constructor so any caller of this method will not be expecting that to happen. This is especially important if the constructor has extra behaviour than just constructing the object.
+
+9.4a
+public MyClass(MyClass toCopy)
+{
+	this.mName = toCopy.mName;
+	this.mData = toCopy.mData.clone();
+}
+
+9.4b
+public MyClass clone()
+{
+	MyClass cls = (MyClass) super.clone();
+	cls.mName = mName.clone();
+	cls.mData = mData.clone();
+	return cls;
+}
+
+9.4c
+If the object is being referred to by a reference to one of its superclasses, the copy constructor will produce an object of the type of the superclass. It will only copy the state relevant to that superclass as well. Finally, since it is an instance of the superclass that has been created it cannot be cast to the original object.
+
+9.4d
+Copy constructors are a better choice if there are final fields or the superclasses cannot be modified to be Cloneable.
+
+9.5
+Cannot set mData in the new class so it will be equal to mData (from the shallow clone). However, the ints in the array can be modified so the new instance is not an independant copy.
+
+9.6a
+- Checked exceptions can be handled at any stage within the call stack whereas return values have to be handled by the immediate caller
+- Checked exceptions force the caller to either catch them or pass them to the next level of the call stack whereas return values can simply be ignored
+- Checked exceptions provide a different mechanism for returning the information than return values. This strengthens the distinction between the success and failure case.
+- Checked exceptions can return other information that may otherwise have to clutter the return type of the function
+
+9.6b
+public and protected methods provide an interface which other developers may use. For this reason, checked exceptions should be used when certain conditions hold:
+- The error in question can be recovered from (there is no need to be able to separately handle an error to which the only response can be to terminate the program)
+- When the error was unpreventable by the caller e.g. not simply because the caller accidentally passed null for an argument
+In private methods, the use of checked exceptions can be less strict because these will only ever be called from within the class. In this case it is more a matter of convenience whether a checked exception should be used or not.
+
+9.6c
+ii) This is the least useful method because it provides no way to determine which error occurred. In the event that different actions need to be performed to recover from the two types of error, this will not work.
+i) This is the second least useful. It still provides no way of distinguishing between the types of errors that can be thrown. However, what it does allow is for the error to be distinguished from other standard exceptions such as NullPointerExceptions which could also occur when incorrect arguments are given to the function.
+v) As of this implementation it is possible to determine which of the two errors occurred. This method does however require string comparisons which could easily introduce bugs (e.g. typos). Furthermore, the catch clause must still catch "Exception" which will be true for all other standard exceptions also.
+iii) This method finally allows both Error1 & 2 to be distinguished while also allowing the user to catch only these exceptions and not all. There is no way however to only catch one of the errors.
+vi) Like above, this allows both errors to be distinguished and the caller does not have to catch all exceptions. The disadvantage from above is that two separate catches are required to catch both errors (or more if more error types are introduced!). The advantage however is that the caller can choose to only catch one of the errors not the other.
+iv) Finally, this is the most flexible. The caller does not need to catch Exception but can catch MethodException to handle both errors at once (and any future errors). Alternatively, each error can be caught and handled individually.
