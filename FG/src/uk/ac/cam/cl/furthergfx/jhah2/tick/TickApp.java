@@ -51,7 +51,9 @@ public class TickApp extends TickCanvas {
   public void init() {
     super.init();
     updateResolutionUniform();
-    Texture.load("resources/sky.jpg");
+
+    Texture.load("resources/sky.jpg", 0);
+    Texture.load("resources/seabed.jpg", 2);
   }
 
   @Override
@@ -213,6 +215,7 @@ public class TickApp extends TickCanvas {
     updateCameraUniforms();
     updateTimeUniform();
     updateStepCountUniform();
+    updateTextures();
   }
 
   private void updateResolutionUniform() {
@@ -232,6 +235,14 @@ public class TickApp extends TickCanvas {
     updateUniformVec3("camPos", camPos);
     updateUniformVec3("camDir", camDir);
     updateUniformVec3("camUp", camUp);
+  }
+
+  private void updateTextures() {
+    int skyLoc = GL20.glGetUniformLocation(program, "texSky");
+    int bedLoc = GL20.glGetUniformLocation(program, "texBed");
+
+    GL20.glUniform1i(skyLoc,  0);
+    GL20.glUniform1i(bedLoc,  2);
   }
 
   private void updateStepCountUniform() {
