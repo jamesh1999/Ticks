@@ -1,0 +1,1 @@
+javac -cp ".\lib\JOML\joml.jar;.\lib\LWJGL\lwjgl.jar;.\lib\LWJGL\lwjgl_util.jar" -d .\out .\src\uk\ac\cam\cl\furthergfx\jhah2\tick\*.java

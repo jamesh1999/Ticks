@@ -1,0 +1,74 @@
+1.2.
+Adverbs can qualify other words strengthening/weakening and sometimes negating their meaning.
+E.g. rarely, neither, nor, never, hardly, barely
+Some verbs can too.
+E.g. to lack
+
+Adjectives can have their meanings flipped as can verbs (often participles of verbs since they can function as adjectives).
+
+1.3.
+Source: Scientists For EU [Facebook] (General sentiment: very negative, Political standing: Anti Brexit)
+Positive:
+new, building, community, benefit, fresh
+Negative:
+dead, leaky, trap, mistake, brands (vb), falling, behind, breaking, shortages, failing, looms, concern, against, warning, 
+
+A lexicon could certainly be used to classify how emotionally involved someone is feeling so long as the training material is similar to the test data. For example, different reporters, papers, websites may have very different writing styles such that, when used in isolation for training, produce very different lexicons. Additionally, the use of only one source will cause the lexicon to reflect that sources biases. E.g. suppose only pro-Brexit websites are used for training. The words leave, independant, Brexit etc. are likely to be classified as being of positive sentiment in the lexicon. To construct a general lexicon, it is crucial that an unbiased training set is used.
+
+1.4.
+328/412 * 100% = 79.6%
+
+1.5.
+Consider the case where one class occurs 90% of the time and the other 10%. If the classifier only guesses the first class it will have 90% accuracy however it will never correctly identify the second class. We should consider a method of normalizing the accuracy so it can not be so easily affected by skewed class probabilities.
+
+2.1.
+a)
+p(C | f) = p(f | C) * p(C) / p(f)
+We could ignore p(f) since it is the same for C=A and C=B and is thus not a useful discriminator however we will not for this.
+
+P(A | f1) = 0.5 / (10/100) * ( 5/50) = 0.5
+P(B | f1) = 0.5 / (10/100) * ( 5/50) = 0.5
+
+P(A | f2) = 0.5 / (10/100) * ( 0/50) = 0.0
+P(B | f2) = 0.5 / (10/100) * (10/50) = 1.0
+
+P(A | f3) = 0.5 / (30/100) * ( 3/50) = 0.1
+P(B | f3) = 0.5 / (30/100) * (27/50) = 0.9
+
+b)
+# = 5 + 5 + 3 + 27 = 40
+p(A) = 8 / 40 = 0.2
+p(B) = 32 / 40 = 0.8
+
+c)
+None to the probabilities. The change in p(C) will be balanced out exactly by the change in p(f | C).
+
+
+d)
+The most useful feature to be present is f2 since the difference between p(A | f2) and p(B | f2) is the greatest thus it will be the largest discriminating factor. It may however cause problems because p(A | f2) is 0. When this is an issue, plus one smoothing can be used and, even with the smoothing, it is the greatest discriminator.
+While the presence of f2 is the most useful it may be argued that f3 can convey more information to the classifier. This is we can infer something not only from the presence of a feature but also the lack of. Consider the following probabilities:
+P(A | ¬f2) = 0.5 / (90/100) * (50/50) = 0.56
+P(B | ¬f2) = 0.5 / (90/100) * (40/50) = 0.44
+
+P(A | ¬f3) = 0.5 / (70/100) * (47/50) = 0.67
+P(B | ¬f3) = 0.5 / (70/100) * (23/50) = 0.33
+
+To calculate the probability of a classifier guessing correctly based on a single feature we can derive:
+P(Correct) = P(f) * Max(P(C | f)) + (1 - P(f)) * Max(P C | ¬f)
+
+For f2, P(Correct) = 0.1 * 1 + 0.9 * 0.56 = 0.604
+And for f3, P(Correct) = 0.3 * 0.9 + 0.7 * 0.67 = 0.739
+
+From this, it is clear that f3 gives the classifier more information. (f1 was ignored because it is useless. P(Correct) will be 0.5 i.e. no better than random guessing.)
+
+e)
+- Draw up a similar table to before with the classes A and B replaced by the classes Correct and Incorrect. Divide the test data into these classes based on whether the Naive Bayes classifier was correct.
+- Calculate the probabilities as before for p(Correct | f)
+- The feature with the maximum p(Correct | f) is the most useful
+
+2.2.
+The previous model places a disproportionately high weighting on common features (those that are likely to occur more than once). These are generally poor discriminators thus, if anything, they should have a lower weight. The second model puts an equal weighting on these features (a penalty over the previous model however it doesn't actually treat them as less useful than rarer features).
+
+3.1.
+According to Heaps's law, in a collection of n words there will be approximately w = k * (n^a) distinct words. Of course, all the written/spoken etc. words of a language form a large collection. However, this is still finite so we can say immediately that not every possible combination of characters is an English word. As for whether the people are right, since these are all relatively short strings, it is very probable that they have occurred before in some form of English.
+To refine on this argument, we need to consider what an "English word" is. A plausible definition is that it is not only a string but one with a universally agreed meaning. In this case, we can discount typos, Names, made up words as not being English words despite them contributing the unique words used in the English language. For this definition, if a large enough group of people agree they are not English word's, they are not English words. This is true since their meaning clearly has not been universally defined.

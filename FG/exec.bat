@@ -1,0 +1,1 @@
+java -cp ".\lib\JOML\joml.jar;.\lib\LWJGL\lwjgl.jar;.\lib\LWJGL\lwjgl_util.jar;.\out" -D"java.library.path"="lib/LWJGL/native/windows" uk.ac.cam.cl.furthergfx.jhah2.tick.Tick

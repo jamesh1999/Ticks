@@ -1,0 +1,167 @@
+1.a)
+module tri_adder (
+	input logic [7:0] a,
+	input logic [7:0] b,
+	input logic [7:0] c,
+	input logic clk,
+	output logic [9:0] out
+);
+
+	always_ff @(posedge clk)
+	begin
+		out <= a + b + c;
+	end
+
+endmodule
+
+b)
+module piped_adder (
+	input logic [7:0] a,
+	input logic [7:0] b,
+	input logic [7:0] c,
+	input logic clk,
+	output logic [9:0] out
+);
+
+	// Pipeline stage 1
+	logic [8:0] s;
+	always_ff @(posedge clk)
+	begin
+		s <= a + b;
+	end
+
+	// Pipeline stage 2
+	always_ff @(posedge clk)
+	begin
+		out <= s + c;
+	end
+
+endmodule
+
+2.a)
+- Transistors were shrunk by a constant percentage each year due to manufacturing advances. This decreased delay allowing operating frequencies to increase.
+- Supply voltage was also decreased allowing the power consumption to decrease and keeping the electric fields generated within the die constant.
+
+b)
+The gains have slowed because we can no longer decrease the supply voltage as before: transistors are leaky and therefore need a certain amount of power to be driven.
+
+3.a)
+An FPGA (Field Programmable Gate Array) is an IC with configurable circuitry. This includes, for example, LUTs (look up tables) which represent arbitrary combinational logic and programmable wiring between modules allowing their connections to be configured.
+
+b)
+An algorithm on an FPGA may perform far more processing per clock cycle through the use of combinational logic, pipelining and parallel hardware.
+
+c)
+This statement will not always be true: for tasks that require many clock cycles to complete, an FPGA may be slower. This is because their clock frequency is generally 10-20x slower than that of a general processor.
+Furthermore, most processors have dedicated hardware for particular tasks e.g. floating point operations, video decoding, multiplication etc. Since this is customised to perform that particular task, it will run faster than an FPGA and tasks requiring heavy use of this will perform faster on the processor.
+
+4.a)
+Clock skew occurs when different components in a circuit receive the clock signal at different times.
+It is important to minimise this because, if a component receives new data at a different time to the clock, the result will be erroneous.
+
+b)
+The maximum clock frequency is determined by the critical path. (The slowest path of data propagation to take place in one clock cycle.)
+
+c)
+By adding a second flip-flop, a whole clock period is set aside to resolving the metastability of the first DFF. This reduces the likelihood of a metastable event being propagated further dramatically but increases latency by one clock cycle.
+
+5.a)
+In small memories, all of the memory cells are relatively close to the output and the buses between them are relatively short. This means the capacitance between wires is low and the clock frequency can be higher.
+Larger memories have memory cells that are further away hence the buses are longer. This means there is more capacitance between wires so it takes longer to drive them to the required logic level. Therefore the clock frequency must be lower.
+
+b)
+In hardware design, the "common case" must be optimised. Therefore, a hierarchy of memories is often used to hold frequently used data in smaller/faster stores and less frequently used data in slower/larger stores. This reduces the average access time because most memory accesses come from the fast store.
+
+6.a)
+Pros:
+- Allows the same operation to be encoded in fewer separate instructions
+- The addressing mode can be optimised in its execution so it is performed faster than equivalent instructions
+
+Cons:
+- More hardware may be required to decode and execute these instructions (= more power, larger die size)
+- Often complex instructions are composed of multiple micro-ops. These instructions will take longer to execute
+- Harder for predictive optimisations (e.g. for preloading into caches, branch prediction...) to "understand" what the instruction will do
+
+2017P5Q1.a)i)
+
+module hept_or (
+	input logic [6:0] a,
+	output logic b
+);
+	assign b = ~|a;
+endmodule
+
+ii)
+module basic_adder (
+	input logic [3:0] d,
+	input logic [3:0] e,
+	output logic [4:0] f
+);
+	assign f = d + e;
+endmodule
+
+iii)
+module down_counter (
+	input logic [3:0] g,
+	input logic load,
+	input logic rst,
+	input logic clk,
+	output logic [3:0] h,
+);
+
+	always_ff @(posedge clk)
+	begin
+		if (rst)
+			h <= 0;
+		else
+			case (load)
+				0 : h <= h - 1;
+				1 : h <= g;
+			endcase
+	end
+
+endmodule
+
+b)i)
+
+Next states:
+a'      : 21,  6,  6,  6,  3,  3,  3
+b'      : 15, 15,  9,  3,  3,  0,  0
+done'   :  0,  0,  0,  0,  0,  0,  1
+answer' :  X,  X,  X,  X,  X,  X,  3
+
+ii)
+Ain = 0
+Bin = >0
+
+2016P5Q1.a)
+The mystery module implements a stack holding {{depth}} {{width}}-bit values.
+
+Its inputs may be used as follows:
+clk - The clock signal on which the operation is performed
+rst - Empty the stack when set to 1
+op - Enum type taking one of the three following values:
+	opNone: Does nothing
+	opIn: Puts the value at dataIn onto the top of the stack
+	opOut: Pops a value off the top of the stack
+dataIn - Vector to input values to the stack
+
+Its outputs are set through combinational logic as follows:
+dataOut - The current top value of the stack (or -1 if empty)
+empty - A bit that is 1 if the stack is empty and 0 otherwise
+full - A bit that is 1 if the stack is full and 0 otherwise
+error - A bit that is 1 if an incorrect operation was requested and 0 otherwise
+
+What constitutes an incorrect operation:
+- When opOut is selected and the stack is already empty
+- When opIn is selected and the stack is already full
+
+b)
+Production Testing (System/Integration Testing) - Tests a functional unit in the context of its intended usage e.g. a module with the intended inputs/outputs connected
+Functional Testing - Tests a functional unit in isolation
+
+c)
+- The module has many states making an exhaustive test impossible (2 ^ (width * depth + log2(depth)))
+- As well as different input combinations, the module accepts parameters which configure it. These also have to be varied and tested.
+
+d)

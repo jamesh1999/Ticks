@@ -1,0 +1,233 @@
+1. C is often considered a low-level language because it exposes low-level features:
+	- It provides primitive types which fit within an individual register
+It also omits some higher-level features:
+	- There is no dynamic allocation, I/O or threading support without the inclusion of a library
+	- Many errors are not checked for and so can silently cause issues at runtime.
+
+2. Starting from 0x00000000 there is typically a gap followed by the machine code and continuing upwards are the static variables. Next is the heap which is upwards growing and at the top of the address space is the downwards growing stack.
+
+3. The first compilation step is the execution of the preprocessor: this modifies source text according to preprocessor directives marked by a '#'. E.g. #include <header> will copy the contents of header into the source at that location.
+The second step is the actual compilation: the source code is parsed and assembly code is generated from the parse tree.
+Next is assembly where the assembly code is translated into machine code.
+Finally, the linker combines machine code files from each .c source file into a single executable program.
+
+4.
+char a[] = "abc"
+- Defines an array of size 4 equivalent to {'a','b','c','\0'}
+- 'a' refers to the array
+
+char* a = "abc"
+- Defines the size 4 array as before & a pointer (whose size will be equal to that of a word on the chosen architecture)
+- 'a' refers to a pointer whose value is the address of the first character in the array
+
+5.
+MON = 0
+TUE = 4
+WED = 2
+THU = 4
+FRI = 4
+SAT = -1
+SUN = 6
+
+Names with their values defined are equivalent to those values however the others default to successive integers starting from 0.
+
+6.
+const - Declares something that cannot be changed after definition
+volatile - Declares something that may be changed without action from the code in the program
+static - Declares a variable in a function that stays defined across invokations. Also declares a variable or function that is private within a .c source file
+
+7.
+Declaration - Gives the function signature and signals to the compiler that it exists and can be invoked
+Definition - Provides the function body (must only be defined once)
+
+8.
+#include <stdio.h>
+int cnts[256];
+int main() {
+
+	char c;
+	while(c = getchar())
+		++cnts[c];
+
+	for (int i = 0; i < 256; ++i) {
+		if (!cnts[i]) continue;
+		printf("'%c' : %d\n", i, cnts[i]);
+	}
+
+	return 0;
+}
+
+9.
+#include <stdio.h>
+
+int main() {
+
+	int upper = 0;
+	int lower = 0;
+
+	char c;
+	while(c = getchar()) {
+		if (c >= 'A' && c <= 'Z')
+			++upper;
+		else if (c >= 'a' && c <= 'z')
+			++lower;
+
+	}
+
+	printf("Upper case: %d\n", upper);
+	printf("Lower case: %d\n", lower);
+
+	return 0;
+}
+
+10.
+bool isPalindromic(char* str) {
+	int len = 0;
+	for (; str[len] != '\0'; ++len);
+
+	for (int i = 0; i < len / 2; ++i) {
+		if (str[i] != str[len - 1 - i]) return false;
+	}
+
+	return true;
+}
+
+11.
+// Incorrect result for -ve n but will terminate
+int fibRec(int n) {
+	if (n <= 1) return 1;
+	return fibRec(n-1) + fibRec(n-2);
+}
+
+int fibIter(int n) {
+	int f0 = 1;
+	int f1 = 1;
+	for (; n > 1; --n) {
+		f1 += f0;
+		f0 = f1 - f0;
+	}
+
+	return f1;
+}
+
+12.
+double pi(int iters) {
+	double ret = 0.0;
+
+	for (int i = 0; i < iters; ++i) {
+		double px = (double)rand() / RAND_MAX;
+		double py = (double)rand() / RAND_MAX;
+
+		if (px * px + py * py > 1.0) continue;
+		ret += 1.0;
+	}
+
+	return (ret / iters) * 4;
+}
+
+Results:
+10 Iters : 2.800000
+100 "    : 3.040000
+1000 "   : 3.196000
+10000 "  : 3.146400
+100000 " : 3.143960
+
+13.
+1) const int* ptr - ptr is a pointer to a constant int
+ptr = 0x######## // Allowed
+*ptr = ########  // Not-Allowed
+
+2) int* const ptr - ptr is a const pointer to an int
+ptr = 0x######## // Not-Allowed
+*ptr = ########  // Allowed
+
+3) const int* const ptr - ptr is a const pointer to a constant int
+ptr = 0x######## // Not-Allowed
+*ptr = ########  // Not-Allowed
+
+14.
+All outcomes are undefined because the variable is assigned multiple times in the same statement.
+
+k++ + ++k = 2 // Behaves as might be expected if the + was evaluated right to left
+++k + ++k = 4 // ??
+k++ + k++ = 1 // Behaves as might be expected if the + was evaluated right to left
+
+15.
+typedef struct {
+	int top;
+	int data[MAX_N];
+} stack;
+
+int Top(stack* s) {
+	return s->data[s->top - 1];
+}
+
+int Pop(stack* s) {
+	return s->data[--s->top];
+}
+
+int Push(stack* s, int x) {
+	s->data[s->top++] = x;
+}
+
+16.
+#include <stdio.h>
+#include <stdbool.h>
+
+int main() {
+	stack s;
+	s.top = 0;
+
+	bool done = false;
+	int d;
+	char c;
+	while(!done) {
+		if (scanf("%d", &d)) {
+			Push(&s, d);
+			continue;
+		}
+
+		c = getchar();
+		switch (c) {
+		case '\0':
+			done = true;
+			break;
+
+		case '+':
+			{
+				int b = Pop(&s);
+				int a = Pop(&s);
+				Push(&s, a + b);
+			}
+			break;
+
+		case '-':
+			{
+				int b = Pop(&s);
+				int a = Pop(&s);
+				Push(&s, a - b);
+			}
+			break;
+
+		case '*':
+			{
+				int b = Pop(&s);
+				int a = Pop(&s);
+				Push(&s, a * b);
+			}
+			break;
+
+		case '/':
+			{
+				int b = Pop(&s);
+				int a = Pop(&s);
+				Push(&s, a / b);
+			}
+			break;
+		}
+	}
+
+	printf("Result: %d\n", Pop(&s));
+
+	return 0;
+}

@@ -1,0 +1,155 @@
+1. (Ex 3)
+|sin(n)| = O(1) : k=1, N=0
+
+|sin(n)| =/= Theta(1) :
+Consider n = k * pi (where k is an integer)
+For all N there is an n where n > N (e.g. n = pi * ceil(N))
+Therefore sin(n) = 0
+k_1 > 0 and g(0) = 1 thus k_1 * g(0) > 0
+Therefore k_1 * g(0) > |sin(n)| and the above statement is proved
+
+200+sin(n) = Theta(1) : k_1=199, k_2=201, N=0
+123456n+654321 = Theta(n) : k_1=1, k_2=2, N=654321/123456
+2n-7 = O(17n^2) : k=1, N=4
+lg(n) = O(n) : k=1, N=1
+
+lg(n) =/= Theta(n) :
+k_1 * n <= lg(n)
+k_1 <= lg(n)/n
+In the limit as n tends to infinity we get
+k_1 <= 0 through application of L'Hopitals rule
+Therefore for large n, k_1 has to be 0 which is not allowed
+Thus the above statement is proved
+
+n^100 = O(2^n) : k=50^100, N=100
+1+100/n = Theta(1) : k_1=1, k_2=2, N=100
+
+2.
+Insertion:
+a) 'Partition' the list of items to sort into two lists: one sorted one of length zero, one unsorted containing all the items. While there are items in the unsorted list, take the first item from that list and scan through the sorted list backwards. For each item encountered, if it is greater than the taken item swap the position of the two but if it is less stop scanning. Increment the size of the sorted list and decrement the size of the unsorted list.
+
+b) O(n^2) - Consider the case where the items are initially in reverse order. Each item inserted will require a number of comparisons/swaps equal to the length of the sorted list. Therefore the total number will be a triangle number. This is given by the formula 0.5 * (n-1) * n (0.5n^2 - 0.5n) thus it is O(n^2)
+
+c) Best case - Already sorted list (n-1 comparisons will be made)
+Worst case - Reverse order list (0.5n(n+1) comparisons will be made)
+
+d) Stable
+
+Selection:
+a) Like in insertion sort, 'partition' the list into a sorted and unsorted list. While there are items in the unsorted list, iterate through them keeping track of the minimum item. Take this item and append it to the sorted list (by swapping it with the first element of the unsorted list and adjusting the sizes).
+
+b) O(n^2) - No matter what, selection sort will always iterate through the entire unsorted array. This means it will always perform the whole triangle number of comparisons (0.5n^2 - 0.5n)
+
+c) Best/Worst case - Any order (there is no branching in the algorithm which could make it run quicker on certain inputs)
+
+d) Stable
+
+Bubble:
+a) Iterate through the list swapping consecutive items if they are incorrectly ordered. For the second iteration only check the first n-1 items then n-2, n-3, ... Repeat this process until either no swaps are performed in a pass or there is only 1 item to iterate through (1 item list must be ordered).
+
+b) O(n^2) - If the minimum element is at the end, n-1 swaps will be required to bring it to the front thus there are n-1 passes. This means n-1 + n-2 + n-3 ... + 1 comparisons will be performed (a triangle number like the previous two sorts)
+
+c) Best case - Already sorted list (only one pass)
+Worst case - Minimum item is at the end of the list (n-1 passes)
+
+d) Stable
+
+Merge:
+a) Recursively split the list evenly in 2. At the base case, lists of length 1 (or 0) are already sorted. Then for large lists, take the two sorted smaller lists and merge them. This means compare the first elements of the two small lists and take the smaller one. This element is then placed at the start of the merged list. Repeat this process appending the elements until the smaller lists are empty.
+
+b) O(n lg(n)) - The splitting process will recurse lg(n) times to produce lists of only length 0/1. At each level in the heirarchy, the sum of the comparisons is up to n since there are n total items to be merged and (so long as no lists are emptied prematurely) adding each item to the merged list will take 1 comparison. Thus n * lg(n)
+
+c) Best case - Already sorted list (this ensures that at each stage the merge operation will completely empty the first list before starting the second thus performing only n/2 comparisons)
+
+Worst case - One of the largest two items in the first half, one in the second half. Then in the first half and the second half one of THEIR largest two elements in the first quarter and the other in the second quarter etc.. (this ensures neither list will be emptied while the other one has many more items during merging)
+
+d) Stable
+
+Quick:
+a) Choose a pivot (such as the first item) then for each other item in the list move it in front of the pivot if it is smaller and behind if it is greater. Then apply quicksort to the list of items before/after the pivot in turn. If the length of the list is 0/1 then it is already considered sorted.
+
+b) O(n^2) - If the pivot selected is always the minimum/maximum item then only 1 element is removed for each recursion. This means n-1 + n-2 + n-2 + ... + 1 comparisons will be performed during pivoting like insertion/selection/bubble sort.
+
+c) Best/Worst case - This depends on pivot selection however the best input will always result in the median item being selected as the pivot and the worst input will cause the minimum/maximum to be selected
+
+d) Not Stable
+
+Heap:
+a) First construct a heap from the input data. This is done by first assuming that all root nodes are heaps and working up the binary tree heapify-ing each parent node. At each stage if the node is a heap, continue. Otherwise replace the root node with the largest child node and heapify that child. After this to construct the sorted list, take the root node of the heap and place it at the end of the list. Heapify the list again. Repeat this until the heap is empty.
+
+b) O(n lg(n)) - Constructing the heap is a linear operation. Producing the sorted list however is O(n lg(n)) because each time only 1 item is removed from the heap (so it must repeat n times) and also heapify is a lg(n) operation because it can recurse the depth of the heap.
+
+c) Best case - The list is already a heap however this does not affect the complexity.
+Worst case - The list is not a heap
+
+d) Not Stable
+
+3.
+Shell:
+a) First a sequence of gaps (g_1, g_2, ..., 1) should be known. For each gap length, perform a pass of the input list and perform an insertion operation (from insertion sort) to position the element correctly in the other g_n-th elements.
+
+b) O(n^2) - Gap sequence is suboptimal e.g. 1 devolves into insertion sort
+c) Best case - As with insertion sort an already sorted list is optimal however this also requires optimal gap sequences. ([1] for already sorted)
+Worst case - Same as insertion sort (reverse sorted) if gaps is [1]
+
+d) Not Stable
+
+4. (Ex 14)
+If the input data is truly random, then no a random pivot is no better than say the first, last or nth item because any individual item has equal probability of ending up at any position in the final sorted list. Therefore the average case will be unaffected.
+
+The worst case will still be unaffected because it is plausible that randomly the minimum/maximum is still selected as the pivot every time.
+
+The main time it will improve the result is when the input is partially sorted which could arise in many applications e.g. in some sort of simulation the data began sorted then underwent a mutation which changed some but not all of it a small amount. In cases like this, the random pivot will perform better than the first/last (although maybe no better than the middle).
+
+We could consider an effective average case performance which takes into account all of the possible input datasets but they are weighted according to the probability of them occurring. The random pivot would improve this.
+
+5. (Ex 15)
+If it is known that each item in the list is no more than x positions from its sorted position then insertion sort will need a maximum of x*n comparisons effectively making it O(n) on this dataset.
+
+The threshold should be when all the lists in quicksort are smaller than X. Where X is the list length when running insertion sort on an unsorted list is quicker than running quicksort on an equivalently long list. This works since the one insertion sort pass will be equivalent to running insertion sort independantly on all of the sub lists from quicksort because the pivot operation means no element can be moved from one list to another.
+
+6.
+Shell:
+
+function shellSort(gaps, arr):
+	PRECONDITION: - gaps contains len(gaps) integer values
+				  - The last value in gaps is 1
+				  - arr contains len(arr) comparable values
+	POSTCONDITION: - arr will be sorted in increasing order
+
+	for gapSize in gaps:
+		for i = 0 up to len(arr):
+			for j = i down to 0 with step gapSize:
+
+				ASSERT: - All items a multiple of gapSize before j are sorted
+
+				if arr[j] > arr[i]:
+					swap(arr[j], arr[i])
+				else:
+					break;
+
+7.
+a)
+There are n! possible input permutations of n items
+The algorithm must rearrange these differently in each case so it must be able to uniquely identify a given permutation
+This is done by comparing 2 items which gives a boolean result
+To best use a comparison, either a true result or a false result should eliminate half of the possible permutations
+=> Need at least lg(n!) comparisons
+lg(n!) = lg(n * (n-1) * (n-2) * ... * 2 * 1)
+	= lg(n) + lg(n-1) + ... + lg(2) + lg(1)
+	> lg(n) + lg(n-1) + ... + lg(n/2)
+	> lg(n/2) + lg(n/2) + ... + lg(n/2)
+	> (n/2)lg(n/2)
+	> (n/2)lg(n) - (n/2)lg(2)
+	>= O(n lg(n))
+
+=> Comparisons are at least O(n lg(n)) and so is the algorithm in question
+
+b) If integers are being sorted and their values are in a fixed interval:
+Construct an array of buckets (one for each potential integer value). For each integer in the list insert it into its corresponding bucket. For each bucket (from smallest to largest) append their contents to the output list. This is linear time O(n)
+
+c) Comparison based sorts are versatile: It is easy to define comparison on something other than integers, floats etc. and then the same sorting algorithm can be used. Whereas other algorithms place restrictions on the types being compared e.g. counting sort and radix sort require integers.
+
+Comparison is often a quick operation: Other sorting algorithms may trade comparisons for increased swaps e.g. gravity sort. Depending on the system running the algorithm and the data being used this may be more costly.
+
+Space requirements: Other sorting algorithms e.g. bucket sort require the instantiation of potentially large numbers of buckets which might never even be used if the input data is small. Therefore the construction of these can dominate the time costs of running the algorithm as well as requiring more memory for it to actually be used.

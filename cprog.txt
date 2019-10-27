@@ -1,0 +1,33 @@
+Programming In C & C++
+======================
+
+C is **high level** i.e. not assembly/machine code
+However it exposes **low level** features:
+	- Primitive types that fit in individual words
+	- Only static definition & stack allocation built in
+	- IO, threading & heap allocation only available through libraries
+
+C is **unsafe** i.e. many errors are not checked and can silently cause problems at runtime
+
+Basic types:
+	``c
+	char   // The size of each type is architecture dependent
+	int    // C99 added fixed size types e.g. int16_t
+	float  // 'Type operators' alter meaning e.g. const, long, volatile
+	double``
+
+Enumerations: `c enum`
+	- Specify a set of constants
+	E.g. `c enum boolean {TRUE, FALSE};`
+	- Defaults to 1+ the previous value beginning at 0
+	E.g. `c enum boolean {ZERO, ONE, THREE=3, FOUR}`
+
+Declaration vs Definition:
+	Definition:
+		- When storage is allocated to a variable
+		- Must happen **once**
+		E.g. `c int x;`
+
+	Declaration:
+		- Must be declared before use
+		- Definition counts as declaration
