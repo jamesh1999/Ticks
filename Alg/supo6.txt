@@ -1,0 +1,227 @@
+1.
+Binary Heap:
++ Simpler implementation
++ O(1) to find the minimum element (but only O(log n) to popmin())
+- push(...) is O(log n)
+Binomial Heap:
++ push(...) is O(log n) worst case but O(1) amortised
++ Supports O(log n) merge(...)
+- O(log n) to find the minimum element (unless a reference to it is kept). Also O(log n) to popmin()
+
+2009P4Q1.
+a)
+Aggregate analysis - When the total cost of a sequence of operations is exactly calculated (Method of determining amortized time by looking at the total time of a sequence of operations Total time / # Ops)
+Amortized analysis - Provides an upper bound on the cost of a sequence of multiple operations
+
+b)
+i)
+False:
+Assume for an arbitrary sequence of m operations that there exists a constant amortized number of stack operations (push(), pop(), isEmpty()) c.
+
+Now consider where each of the m operations is a multipush(...) where the list is of length c+1. Each multipush() will produce c+1 push() operations totalling m*(c+1) stack operations. The average time of these multipush(...) operations is therefore c+1 which is greater than c thus the amortized time is not constant.
+
+A tight upper bound can however be reached: let x be the maximum number of Items in any multipush(...) operation in the sequence. We know that under this condition, multipush(...) has amortized time O(x). The same is true of multipop(...) since in m operations the largest number of elements that can be pushed onto the stack is m*x. Therefore there can be at most m*x pop() calls between all of the multipop(...) operations. Thus the amortized time for multipop(...) is m*x / m hence O(x). The normal stack operations also satisfy this bound because they are constant time.
+
+Removing multipush(...) amortized constant
+
+ii)
+public class Queue
+{
+	Stack store;
+	Stack rstore;
+
+	public Boolean isEmpty() { return store.isEmpty() && rstore.isEmpty; }
+	public void enqueue(Item x) { store.push(x); }
+	public void dequeue()
+	{
+		// Refill the reversed stack
+		if (rstore.isEmpty())
+		{
+			while (!store.isEmpty())
+				rstore.push(store.pop());
+		}
+
+		return rstore.pop();
+	}
+}
+
+iii)
+isEmpty:
+- Two calls to Stack.isEmpty which are both O(1)
+=> O(1)
+
+enqueue:
+- One call to Stack.push(...) which is O(1)
+=> O(1)
+
+dequeue:
+- For non-empty rstore:
+	- One call to Stack.isEmpty() which is O(1)
+	- One call to Stack.pop() which is O(1)
+- For empty rstore and store holding n Items:
+	- Additional n calls to Stack.isEmpty() O(1)
+	- Additional n calls to Stack.push(...) O(1)
+	- Additional n calls to Stack.pop() O(1)
+
+Let Phi = 3*n where n Items reside in store (Design function to decrease during the expensive operation)
+(Potential function always positive otherwise small sequences of operations will be linear but average to constant over a long time aka not amortized constant)
+
+For non-empty rstore:
+	Actual cost is 2
+	Change in Phi is 0
+	=> Amortized cost of 2 ( O(1) )
+For empty rstore:
+	Actual cost is 3n + 2
+	rstore begins with n elements and ends with 0
+	=> Change in Phi is -3n
+	=> Amortized cost of 3n+2 -3n ( O(1) )
+
+2009P4Q2.
+a) (Fib heap degree = number of direct children) (Update min pointer when decrease key violates heap property)
+merge: O(n)
+extractMin: O(n) + O(log n)
+decreaseKey: O(n)
+Phi = roots + 2*losers
+(Loser nodes need to be "tidied" twice loser->root->merged tree)
+b)
+When a Fibonacci heap is at its widest possible state, it is essentially a list because all the trees have degree 1. In this configuration, push() and decreaseKey() are both constant time operations however extractMin() is linear time because a search through the list is required to find either the current minimum or the next minimum depending on implementation.
+The heap is prevented from becoming excessively wide through the cleanup() operation performed after each call to extractMin(). This merges all trees of equal depth thereby decreasing the number of trees within the heap while increasing their depth. (The newly produced tree has depth equal to that of the previous trees plus one.)
+
+c)
+To create a linear tree with n nodes:
+push(0)
+for i in range(n, 0):
+	push(2*i)
+	push(i+1)
+	extractMin()
+	decreaseKey(i+1, 0) # Decreases the key of the node whose current key is i+1 to 0
+
+push(2*n)
+for i in range(n-1, 0):
+	push(2*i) # Node to become new root of linear tree
+
+	# Nodes to "pad" new node to make it equal degree
+	for j in range(i, n-1):
+		push(2*j + 1)
+
+	# Cleanup to merge equal trees
+	push(0)
+	extractMin()
+
+	# Remove padding nodes
+	for j in range(i, n-1):
+		decreaseKey(2*j + 1, 0)
+		extractMin()
+
+This leads to the following chain of operations:
+push(2n)               |Height 1
+
+push(2n-2)             |
+push(0)                |Height 2
+extractMin()           |
+
+push(2n-4)             |
+push(2n-3)             |
+push(0)                |
+extractMin()           |Height 3
+decreaseKey(2n-3, 0)   |
+extractMin()           |
+
+push(2n-6)             |
+push(2n-5)             |
+push(2n-3)             |
+push(0)                |
+extractMin()           |Height 4
+decreaseKey(2n-5, 0)   |
+extractMin()           |
+decreaseKey(2n-3, 0)   |
+extractMin()           |
+
+2003P5Q1.
+a)
+Each set will be implemented as a tree. Every node in the tree has a reference to its parent. The root of the tree will also store an upper bound on its height.
+Initially therefore there are 1 million trees consisting of one node each.
+
+union(S1, S2):
+	If S1.height >= S2.height then:
+		If S1.height == S2.height then:
+			S1.height += 1
+		S2.parent = S1
+	Else:
+		S1.parent = S2
+
+inSameSet(m, n):
+	N1 = Node representing m # This mapping could be obtained from a lookup in a hash table or indexing into an array
+	N2 = Node representing n # It should however be O(1)
+
+	# Path compression for N1
+	L = Empty List of Nodes
+	N = N1
+	While not IsRoot(N.parent) do:
+		L.add(N)
+		N = N.parent
+
+	Foreach X in L:
+		X.parent = N
+
+	# Path compression for N2
+	L = Empty List of Nodes
+	N = N2
+	While not IsRoot(N.parent) do:
+		L.add(N)
+		N = N.parent
+
+	Foreach X in L:
+		X.parent = N
+
+	return N1.parent == N2.parent
+
+With this implementation, the union operation is always constant time since it just has to update the reference of the smaller tree. Furthermore, the inSameSet operation is also kept fast by lazily flattening the trees. The flatter, the fewer iterations required to reach the root and determine whether m and n are in the same tree.
+
+6.
+a)
+add_singleton is an O(1) operation
+merge requires updating only a single handle because only a singleton is being merged each time. Therefore it is also O(1)
+Therefore, m O(1) operations are being performed and the total complexity is O(m)
+
+b)
+The new worst case is achieved by merging equally sized sets since the heuristic can no longer save time by picking the smaller set to update the handles of.
+In a sequence of m operations there will be:
+	- m/2 add_singleton calls to produce m/2 size 1 sets
+	- m/4 merge calls to produce m/4 size 2 sets (2 handles updated)
+	- m/8 merge calls to produce m/8 size 4 sets (4 handles updated)
+	...
+	- 1 merge call to produce a size m/2 set (m/2 handles updated)
+
+Total cost:
+1 * m/2 = m/2 (Contribution from add_singleton)
+
+m/4 * 2 + m/8 * 4 + ... + 1 * m/2
+= m/2 + m/2 + ... lg(m)-1 times ... + m/2
+= m/2 (lg(m) - 1)
+
+= m/2 lg(m)
+= O(m lg(m))
+
+2004P6Q1.
+a)
+intersects(L1, L2):
+	Mat = [L1.end.x - L1.start.x, L2.start.x - L2.end.x]
+	      [L1.end.y - L1.start.y, L2.start.y - L2.end.y]
+
+	[t] = Inverse(Mat) * [L2.start.x - L1.start.x]
+	[s]                  [L2.start.y - L1.start.y]
+
+	return 0 <= s <= 1 && 0 <= t <= 1
+
+b)
+The scan iterates through all sorted points in the outer loop. Inside the loop, it can iterate through the points currently in the hull to delete them. This operation can be performed at most n-2 times since the bottom most point must be in the convex hull so the list can never be fully emptied and only n-2 points can have been added to the list (this is also a degenerate case where the hull is a line so in practice it should really only be possible to remove n-3 points). Because of this, the cost to remove items from the list can be spread so only 1 is removed each iteration of the outer loop. Therefore the body of the loop is constant time and the scan is O(n).
+
+The algorithm as a whole is O(n log n) since the sorting of the points is a O(n log n) operation.
+
+c)
+Points with extreme high/low xy coordinates can be picked forming one or more triangles. These can be used to cull the points within them by computing the barycentric coordinates of the other points.
+(If point on the left of all 3 vectors (dot product test) then inside triangle)
+
+Graham: O(n log n)
+Jarvis: O(nh)

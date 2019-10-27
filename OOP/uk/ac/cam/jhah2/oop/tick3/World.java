@@ -5,7 +5,12 @@ public abstract class World
 	private int m_generation = 0;
 	private Pattern m_pattern;
 
-	public World(String s)
+	public World(Pattern patt)
+	{
+		m_pattern = patt;
+	}
+
+	public World(String s) throws PatternFormatException
 	{
 		m_pattern = new Pattern(s);
 	}

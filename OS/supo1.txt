@@ -1,0 +1,112 @@
+1.1a
+i)
+A medium sized (MBs) portion of memory located close to the processor. It has faster access speeds than main memory and is used to store frequently accessed values masking the slower access speeds. It can store both program instructions and data but may be partitioned so that these reside in separate caches.
+ii)
+The slowest of the three memories referred to (however still faster access speeds than non-volatile forms of storage). This is the largest (GBs) of the memories and will store loaded program instructions and data.
+iii) Registers are the fastest of the memories in question but also the smallest (<kBs). They are located in the CPU and store values currently being worked with. With the exception of the instruction register, only data should be stored in registers.
+
+b)
+When main memory is too small to contain all the data loaded by a program, the operating system may use a swap file to allocate a portion of disk storage (or other NV storage) for use as main memory. This may be required when accessing a large database, reading a large file etc.
+
+2.a
+i)
+Unsigned integers are represented in memory as a sequence of bytes. Their value can be retreived by concatenating the binary representation of the bytes and converting to decimal. The order of the bytes in memory depends on the endianness of the system: 
+Big-endian: MSB is stored in the byte with the smallest address
+Little-endian: LSB stored in the byte with the smallest address
+
+ii)
+Signed integers are usually represented in a 2s complement format:
+
+-------------------------
+|S|b0 b1 b2 b3 b4 b5 ...|
+-------------------------
+
+S - Sign bit
+The value of the integer is the same as the equivalent unsigned integer if S = 0. Otherwise it is minus ~(b0 b1 b2 b3 ...) + 1
+
+Another format is sign & magnitude where the value of the integer is given by:
+(-1)^S * (b0 b1 b2 b3...)
+
+iii)
+To determine the length of the string, there are two possible methods:
+- The string may be null terminated i.e. there is a character located at the end of the string that marks the end
+- The string is stored length|data
+
+The characters within the string could be stored in one of several formats including ASCII, UTF-8, UTF-16, UTF-32
+
+iv)
+An instruction is usually broken into several sections:
+Opcode - Specifies which operation to perform
+Operands - Specifies the data to work on e.g. immediate values (numbers encoded directly in the instruction), registers
+
+3.
+Firstly, the instruction in the address given by the program counter is "fetched" loading it into the instruction register. From here it is "decoded". This involves selecting the relevant functional units from the given opcode and accessing the registers denoted by the operands / loading the immediate values given.
+The operation will then be "executed" within a separate region of the CPU known as the execution unit. For an arithmetic operation, this involves the ALU performing some operation on its input registers and writing the output to the data bus. This is then usually saved into an additional register. For a control flow operation, a branch condition may be checked and depending on its value, the program counter may be modified. For a memory access operation, the memory access unit will be selected and it will determine the physical address to be read/written. The address will be written to the address bus and data will be written to/read from the data bus.
+
+4.
+Non-preemptive scheduling:
+Simple to implement because processes only have to switch when they are ready (OS has less issue saving state of process)
+No extra hardware requirements
+Can be unfair because one process may never terminate or block (No other process will run in this instance)
+Better performance because there are fewer context switches
+
+Preemptive scheduling:
+Harder to implement (OS has to save state of running process e.g. page file, register contents)
+Extra hardware requirements (timers and therefore interrupts)
+Fairer because each process is allocated its own quota of CPU time
+Worse performance because during the execution of one process there will me many context switches
+
+5.a)
+CPU time is allocated first to the highest priority job then to the jobs in order of decressing priority. Another algorithm will be used in the case of a tie. This may be round robin where each process of equal priority is given a fixed quota of the CPU time in turn. However, first come first served or shortest job first may also be employed.
+
+b)
+For first come first served and shortest job first, this is definitely true. This can be demonstrated by assigning the nth process a priority of n for FCFS and assigning each process a priority equal to its remaining time for SJF. This will result in the exact same order of execution.
+For shortest remaining time first, this is also true however the priorities are no longer static since the priority must be updated every time the program executes to reflect the new remaining job time.
+For round robin, the statement is not true because processes do not run to completion the CPU switches. This means there is that no process in a higher priority bracket to run to completion before the others are allocated CPU time.
+
+c)
+Static priority scheduling is prone to denial of service if a process requires a lot of CPU time. This leads to issues of fairness because lower priority processes will rarely run which can manifest as unresponsiveness for the user if say a system process is using all of the CPU. 
+
+d)
+IO intensive jobs will frequently block (waiting for data to be read from disk, waiting for user input etc) which means that another process can be allocated time. These processes are given a high priority because they are usually biased against by scheduling algorithms: consider round robin where an IO intensive jobs blocks in the middle of its timeslice. The algorithm can switch over to another process however this is 'unfair' since the process didn't receive its entire timeslice of actual work. Alternatively, it can wait but this wastes time the CPU could be working on other non-blocking processes. By allocating these processes a higher priority, the bias against these processes can be offset.
+
+2008P1Q2
+a)i) 256 + 1024 + 4096 + 32768 = 38144
+ii) -5376
+iii) 65535 - 38144 = 27391
+=> -27392
+iv)
+Assuming the number is given in big endian format
+Assuming the number is signed like the IEEE standard
+Sign: 1 i.e. -ve
+Exp: 00101 => -10
+Mantissa: 1.01 => 1 + 0.25
+
+-1.25 * 2^-10
+= -0.0012207...
+
+b)
+The carry flag will be high (The unsigned number 2*38144=76288 cannot be represented in 16 bits)
+The overflow flag will be also be high (The signed number 2*-27392=-54784 does not fit into a 16 bit representation)
+
+2011P2Q3
+Access control - Ensuring users, processes etc only perform actions that they are 'allowed' to perform
+Access control list - A list of users' capabilities maintained by the operating system which is used to determine whether to allow them to perform an action
+Capability - An action a user has permission to perform e.g. file read/write/execute, access to hardware...
+
+2012P2Q3
+a)i)
+During a context switch, the current values of registers within the CPU will be saved. Since the current point of execution is just stored within the program counter (PC) register, this too will be saved. It will be restored when the value is read back into the program counter.
+
+ii) Each process maintains a logical address space where only its own data and instructions are accessible. This is translated into physical memory by the memory management unit (MMU). For the operating system to restore a processes address space, the MMU must be configured so that it can translate from the processes logical addresses to physical addresses. How this is done depends on whether the system is using segments or pages to implement virtual memory.
+For a system based on pages, the operating system must restore the processes page table. This may be located in main memory in which case it is simply a matter of updating a register to point to the page table however all of the page table entries may need copying to the MMU depending on implementation. Once this is done, the corresponding pages in memory can be found for each logical address thus translation can be performed and the address space is restored.
+For a segment based system, a program maintains one or more segments in which it stores data/instructions. These segments must be restored like the pages before for address translation to be possible. Again, how exactly this is done depends on implementation. Once the MMU has access to the processes segments, it is able to translate logical addresses into their physical counterparts.
+iii) Register contents, resources being used (hardware or files)
+
+b)i) The process enters the interrupted state (transition i) and the interrupt service routine is executed. Because the timeslice has not yet expired, the process may continue executing and it returns to the running state (transition j). The scheduler does not need to run.
+
+ii) Since the timeslice has expired, the process is moved to the ready state (transition g) and the scheduler is run to determine the next process to allocate time to.
+
+iii) The process enters the kernel state when making the system call (transition b). This is serviced and the process returns to the running state (transition a). The scheduler need not run.
+
+iv) The process makes the system call entering the kernel state (b). The IO operation is blocking thus the process enters the waiting state (c). When the operation has been completed, the process will return to the ready state (e). The scheduler will run when the process enters the waiting state to determine which process to execute in the meantime.

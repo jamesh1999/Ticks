@@ -26,7 +26,7 @@ public class PatternStore
 	private void load(Reader r) throws IOException
 	{
 		BufferedReader br = new BufferedReader(r);
-		for (String l; (l = b.readLine()) != null; )
+		for (String l; (l = br.readLine()) != null; )
 		{
 			try
 			{
@@ -37,8 +37,10 @@ public class PatternStore
 					mapAuths.put(p.getAuthor(), new LinkedList<Pattern>());
 				mapAuths.get(p.getAuthor()).add(p);
 			}
-			catch (PatternFormatException)
+			catch (PatternFormatException e)
+			{
 				System.out.println("WARNING: " + l);
+			}
 		}
 	}
 
@@ -56,49 +58,49 @@ public class PatternStore
 
 	public List<Pattern> getPatternsNameSorted()
 	{
-		return Collections.sort(new LinkedList<Pattern>(mapName.values()),
-				new Comparator<Pattern>()
-				{
-					public int compare(Pattern p1, Pattern p2)
-					{
-						return p1.getName().compareTo(p2.getName());
-					}
-				});
+		List<Pattern> copy = new LinkedList<>(patterns);
+		Collections.sort(copy);
+		return copy;
 	}
 
 	public List<Pattern> getPatternsAuthorSorted()
 	{
-		// TODO: Get a list of all patterns sorted by author then name
+		List<Pattern> copy = new LinkedList<>(patterns);
+		Collections.sort(copy,
+			(Pattern p1, Pattern p2)->
+				p1.getAuthor().compareTo(p2.getAuthor()) != 0
+				? p1.getAuthor().compareTo(p2.getAuthor())
+				: p1.getName().compareTo(p2.getName()));
+		return copy;
 	}
 
 	public List<Pattern> getPatternsByAuthor(String author) throws PatternNotFound
 	{
-		try
-			return mapAuth.get(new LinkedList<Pattern>(author));
-		catch
-			throw new PatternNotFound("");
+		List<Pattern> result = mapAuths.get(author);
+		if (result == null) throw new PatternNotFound("");
+		List<Pattern> copy = new LinkedList<>(result);
+		Collections.sort(copy);
+		return copy;
 	}
 
 	public Pattern getPatternByName(String name) throws PatternNotFound
 	{
-		try
-			return mapName.get(name);
-		catch
-			throw new PatternNotFound("");
+		Pattern p = mapName.get(name);
+		if (p == null) throw new PatternNotFound("");
+		return p;
 	}
 
 	public List<String> getPatternAuthors()
 	{
-		return Collections.sort(mapAuth.keySet());
+		List<String> keys = new LinkedList<>(mapAuths.keySet());
+		Collections.sort(keys);
+		return keys;
 	}
 
 	public List<String> getPatternNames()
 	{
-		return Collections.sort(mapName.keySet());
-	}
-
-	public static void main(String args[])
-	{
-		PatternStore p = new PatternStore(args[0]);
+		List<String> keys = new LinkedList<>(mapName.keySet());
+		Collections.sort(keys);
+		return keys;
 	}
 }

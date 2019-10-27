@@ -1,0 +1,37 @@
+- Bellman - Ford O(VE)
+- Iterate n(Nodes) times not iterate over the nodes
+
+
+
+Proof of Dijkstra's:
+By contradiction
+
+u.x - Node u has path distance x
+
+u.d >= u.D
+
+Assume u.d > u.D (i.e. shortest path not found)
+
+There exists an edge E(w,v) such that W is in the set of correctly computed shortest paths and V is in the set of incorrectly computed shortest paths
+
+Therefore u.d <= v.d (we chose u first)
+
+But v is on the shortest path so u.D >= v.D
+
+By convergence lemma: we have the shortest distance to v
+v.d = v.D
+
+u.D < u.d <= v.d = v.D <= u.D
+
+But u.D < u.D is false
+=> Contradiction
+
+
+
+- No negative weights except for source ONLY works if no negative cycles
+
+Johnson's all +u.d-v.d in middle of path cancels out => Does not bias against path length
+New node because graph may not be connected & using existing node might create negative cycles
+
+Bellman/Matrix scale parallel-y + Constants for Fib-PQ is large
+Bellman shows a node in negative cycle - can break an edge to remove cycle?

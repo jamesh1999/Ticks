@@ -1,0 +1,77 @@
+2012P8Q12
+a)i)
+- A student registers as an external auditor and is passed the question to 'sanity check' it. They pass the question to a real auditor having taken a copy. [auditor least incentivised to keep secret]
+[Clerk could make captcha errors (because they are doing a very repeated task) also paid less and less responsible]
+- They steal a copy of the question from the printer after the question has been copied.
+- They have an excuse to meet with the professor who wrote the question and memorize as much as they can see on the professor's desk.
+- They intercept the question being passed from the professor to the chief examiner through e.g. university mail system and make a copy.
+ii)
+The goal is that nobody outside of the professor, examiner and clerk has access to read the question or modify it.
+The requirements are that the question never be stored on a networked computer and that the process be flexible in timing allowing for up to several months to write the questions.
+To ensure this, each professor should be responsible to make sure their own questions do not fall into student hands as the clerk, examiner and auditor have to check many questions. To avoid storing the questions on networked computers, there shall be only one paper, hand written copy of the question for stages 1-6 of the process which the professor is to hand to relevant persons face to face. The final stage 7 shall be performed on a non-networked computer as close to the exam date as possible to reduce the chance of the question being compromised.
+[ Paper copies are easy to steal which is harmful = compliance budgets ]
+
+b) i)
+The goal for this policy is that read and write access to the question is limited to staff only.
+The requirements are that the process be flexible so that a question can be completed in anything from a few months to a week and that it does not cause undue trouble for the staff involved.
+Rather than requiring paper copies of the question and face to face meetings, we favour email to transfer the questions between relevant parties to save time.
+Responsibility for each question still remains with its professor: if a question is compromised, it is that professor's job to deliver a replacement question.
+To ensure emails are delivered to the correct parties, it is the job of the head of department to hand out the addresses of auditors, chief examiners and clerks to the professors before question writing begins. Professors may then write up questions electronically before sending them to chief examiners. Since it is possible for email to be sent insecurely or for people to use poor password security, all communication will be performed using an internal mail server with requirements for secure passwords and encrypted emails. As before, the final step 7 will be completed at the latest possible date before the exams to prevent the paper copies of the questions having much chance of reaching students.
+[ Deliberate leakage is unlikely compared to accidental / No issue if question is known leaked = force people to be detected when question is leaked ]
+[ "Why Jonny Can't Encrypt" ]
+
+ii)
+In b) I added the extra stage where the head of department issues the professors with the contact details for the chief examiners, auditors and clerks. This trade-off favours security since it creates more work but makes it harder for students to impersonate any of these parties. It is necessary to perform this step as it would be an easily exploited flaw where students could create similar email addresses or they could even initiate contact with professors claiming to be exam staff.
+The choice to use email was a trade-off favouring usability. In a) the only option was to use physical copies of the questions which either required passing the questions to more people to deliver them or face to face meetings. The latter is very inconvenient to arrange on a large scale when staff will already have busy schedules. Therefore a lot of time can be saved by using email to deliver the questions.
+The final trade off is to delay the printing of the questions. This favours security because the more copies of the question that exist, the easier it is for one of those to be seen by a student. Therefore, it is necessary to limit this as much as possible until as late as possible. This hampers usability because it leaves the work of constructing the actual papers all until the last minute.
+
+2016P3Q8.
+a)
+Sprints - Insist on retaining it even in smaller projects: Forces goals and deadlines to meet them to be set in the short term. This helps progress to be made on new features and prevents stagnation. [ Tackle hardest first, forceful splitting of projects may result in overhead ]
+b)
+PERT/GANTT - These could be left aside for smaller projects where a clear timeline can be assumed from the project specification. For larger projects, however, they are essential to help make sure long term deadlines with the project are met. This is also useful for critical path analysis to make sure resources are allocated effectively so that the project is completed as quickly as possible. [ Display GANTT w/ live updates to show there is progress & encourage progress ]
+c) Regression - This is not important for small projects and could be left aside simply because it is easily to thoroughly test the code base. Furthermore, for waterfall environments, it will also not help since the project needs to be deployed to determine what counts as regression in future releases. Otherwise, it is near essential to make sure large projects maintain their existing features and make net progress when code bases become too large to comprehend in their entirity. [ Potential value in waterfall? New developers who didn't write original code ]
+d) Source management tools - I would argue these are important for all projects of multiple people. Version control is essential for coordinating work and automated code review can save a significant amount of time and maintain a clean/consistent code base. 
+e) Scrumming is an important way for managing / organising sprints in larger projects and i would insist on it for large projects where a large number of sprints are expected to be required. (And more importantly reevaluation will be needed as the project progresses.) [ Meeting to explain what people have done = people work so they have something to say / dealing w/ problems too if multiple people have the same issue ]
+
+2000P9Q6.
+
+[MAC - To guarantee message comes from one of the parties
+
+Asymmetric - expensive so avoid unnecessary computation
+Hand over to symmetric after
+
+Just authentication no secrecy
+
+T_A logical time stamp (acting as a nonce)
+
+K_AB is generated randomly at this point]
+
+a)
+A -> B : C "A transmits message C to B"
+X,Y "X concatenated with Y"
+{M}K "Message M encrypted with key K"
+K_A "A's public key"
+K_A^-1 "A's private key"
+
+A transmits to B "T_A, K_AB" encrypted with A's private key then B's public key
+
+b)
+There is no verification of B's identity
+[ Encrypted message is entirely random => Guess random messages & decrypt w/ A's private key to find a valid nonce ]
+[ Plus MITM ]
+[ Fix is to add source AND dest ]
+[ Trust everyone we communicate w/ so MITM is irrelevant ]
+
+4.
+For:
+Generally more methods developed to ensure reliability and a greater understanding of how reliability is achieved
+- Maturity of protocols/technologies means they can be trusted to a greater extend
+- Automated testing is more widely used (regression testing, unit testing)
+- Understanding of common failure modes in software allows us to prevent these occurring again
+
+Against:
+We are expecting more of the software we write
+- Larger projects have more dependancies => it is likely for errors to be introduced which we cannot control
+- Modern tooling often pulls new dependancies automatically so errors can be introduced seemingly at random
+- Larger development teams are required on projects => Harder to communicate between entire team which results in incosistency and vulnerabilities

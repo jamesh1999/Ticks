@@ -1,0 +1,19 @@
+26. 2.41 - 1/x
+
+Gradient descent - precise local minimum
+Simulated Annealing - approximate global minimum
+
+MM^T = (M^T)^T M^T = (MM^T)^T
+=> Symmetric
+
+Either || all basis vecs is 1 or M M^T = I
+
+QQT = I
+QQ-1 = I
+Q-1Q = I
+QTQ = I
+QED
+
+
+(Mv)T Mv = vTv
+(vTMT) Mv = vTv

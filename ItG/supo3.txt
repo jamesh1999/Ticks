@@ -1,0 +1,124 @@
+1.
+Texture Mapping:
+This can change the diffuse colour per fragment of a polygon. I.E. rather than each vertex on a model being assigned a colour and these being interpolated for intermediate points, a texture map (sometimes called a diffuse map) can be referenced to determine the colour using tex coords which are interpolated across a polygon.
+Advantages:
+- To achieve the same level of detail on a model this can drastically reduce vertex/index buffer sizes because new vertices are not needed whenever a colour changes
+- Even with very small textures, a great deal of complexity can be added to a surface: small but tileable textures, multiple textures added together at different scales, blend textures etc.
+Disadvantages:
+- More state changes that must be made between draw calls (this can easily be mitigated with texture atlases or texture arrays)
+- Textures are sampled once for each fragment whereas multiple texels may lie within the pixel. (This can be helped by precomputing mip maps which are lower resolution copies of the texture)
+
+Normal mapping:
+This changes the normals used in lighting calculations per fragment of a polygon without increasing the number of vertices. This allows for more accurate specular highlights and diffuse lighting creating the appearance of a rough surface.
+Advantages:
+- This is a relatively efficient way to add the additional normals into the model. The number of vertices does not increase and only an extra texture sampling operation and some vector operations are required per fragment
+Disadvantages:
+- The actual geometry is not modified hence the silhouette of an object will not be affected
+- Because the geometry is not modified, there is no self occlusion of the surface
+
+Displacement mapping:
+Displacement maps are applied during the tessellation stages (as opposed to the previous examples which all occur in the fragment shader). These physically alter the position of the newly constructed vertices.
+Advantages:
+- All the limitations of normal mapping are removed i.e. silhouettes will be accurate and parts of the surface can hide other parts
+- Because the new geometry is constructed in the tessellation stages, large vertex/index buffers are not required
+Disadvantages:
+- The large number of contructed vertices makes this technique a lot more computationally expensive than normal mapping
+
+Parallax Occlusion Mapping:
+This technique uses a height map to iteratively compute the correct tex coords for a given fragment. This allows the normal to be determined from the heightmap as well as the correct colour from the diffuse map etc. 
+Advantages:
+- Because the correct tex coord for each fragment is calculated, bumps on the surface will be rendered more accurately in the sense that they will look as though they have been projected onto the screen too. They will also self occlude
+- The self occlusion property makes it possible to add larger bumps without the surface looking "fake"
+Disadvantages:
+- As with normal mapping the silhouette is not affected
+- If insufficient iterations are used to calculate the correct tex coords, artifacts due to aliasing can occur
+- The technique is more computationally expensive than normal mapping
+
+2.
+Many normal maps are computed in tangent space (although this does not have to be the case). Therefore, the blue colour represents a unit vector pointing directly away normal to the polygon (as most of the normals will do). This can then be rotated into the correct space during the fragment shader provided two different vectors tangential to the polygon are known.
+
+3.
+GL_NEAREST - Nearest neighbour sampling. This will result in highly pixelated surfaces if the textures are of a low resolution or the surface occupies a large portion of the screen. This can also easily produce moire patterns when the texture has a regular pattern since only one texel is sampled per pixel. This is the cheapest operation to perform computationally as it requires only one texel to be read. It is also the cheapest in terms of memory usage since only the original full sized texture is stored in memory.
+
+GL_LINEAR - Linear interpolation. This will result in smoother looking surfaces because the boundaries between pixels will be blurred. This map be considered to result in greater visual quality however depending on the style of the application the pixelated texture may be desired. This is more computationally expensive than GL_NEAREST since 4 texels will have to be read and their values averaged according to the interpolation coefficients. This technique occupies the same space in memory as GL_NEAREST since only the full sized texture is stored.
+
+GL_NEAREST_MIPMAP_NEAREST - Nearest mipmap selection with nearest neighbour sampling. The closest matching mipmap for the size of the pixel is selected and the nearest texel is selected from it. By using mipmaps, when the texture is occupies a small area on screen, moire patterns are less likely to be observed because the values of many texels have already been averaged. This method is not too computationally expensive since only one texel must be read. However, there is a cost in determining the correct mipmap to be used. Additionally, this method (and all following mipmap methods) will use more memory than GL_NEAREST and GL_LINEAR since all of the mipmaps must be stored.
+
+GL_LINEAR_MIPMAP_NEAREST - Nearest mipmap selection with linear interpolation. As before, the closest mipmap is selected for the pixel size however this time the corresponding 4 texels will be read and their values interpolated. This will further reduce aliasing artifacts since a larger number of texels contribute to the resulting value of the sample. This method is more computationally expensive than GL_NEAREST_MIPMAP_NEAREST since once the mipmap has been selected, 4 texels still need to be interpolated. It will however use the same amount of memory.
+
+GL_NEAREST_MIPMAP_LINEAR - Linear mipmap interpolation with nearest neighbour sampling. The two mipmaps corresponding to the pixel size will both be sampled as per GL_NEAREST and their two values will then be linearly interpolated. This will be more expensive than GL_NEAREST_MIPMAP_NEAREST since two mipmaps have to be sampled and their values interpolated however it will further reduce aliasing artifacts resulting in greater visual accuracy. The memory usage will be the same.
+
+GL_LINEAR_MIPMAP_LINEAR - Linear mipmap interpolation with linear interpolation when sampling mipmaps. As before, the two relevant mipmaps will be sampled. However, this time, the 4 texels surrounding the fragment will be sampled and their values interpolated to give one value from each mipmap. These two values in turn are linearly interpolated to give the final result. This will give the highest visual accuracy since 8 texels have been read and contribute to the final value (the most of the techniques described) so moire patterns and other aliasing artifacts will be heavily reduced. It is also the most computationally expensive for the same reason: 8 texels must be read and interpolated. It will use the same amount of memory as the other mipmapped sampling methods since it is the same texture/mipmaps that are stored.
+
+4.
+GL_CLAMP_TO_EDGE - All tex coords outside of the [0, 1] interval are "clamped" to that interval. I.E. > 1 --> 1, < 0 --> 0 This means the image will not repeat/tile. It will occur only once and, outside that, the edge colours of the image will be used.
+
+GL_REPEAT - The tiling method described. The integer part of all tex coords is dropped resulting in a repeating pattern.
+
+GL_MIRRORED_REPEAT - This also tiles the texture however every other texture will be flipped in that axis. This means the border of each texture will connect to itself.
+
+From DirectX:
+D3D11_TEXTURE_ADDRESS_BORDER - Like CLAMP_TO_EDGE, this produces only one copy of the texture however in this case all tex coords that fall outside the [0, 1] interval will be mapped to a single colour specified separately.
+
+D3D11_TEXTURE_ADDRESS_MIRROR_ONCE - This is equivalent to taking the absolute value of the tex coord then applying CLAMP_TO_EDGE. In effect this also maps the whole range [-1, 1] and anything outside that will be set to the border colour of the texture.
+
+5.
+Imagine the cube completely surrounding the sphere. To get the texel representing a given point on the sphere, begin a ray at the centre of the sphere and trace it through the point until it intersects the cube. This is the texel to be used.
+
+To use a single 2D image to texture the sphere, address it with spherical coordinates such that the entire top border of the image represents the upper most point on the sphere and the same for the bottom edge and bottom point.
+
+The cube mapping methode will give greater visual quality per unit storage used. This is because the second method doesn't evenly map texels to points on the sphere. E.g. an entire row of the texture corresponds to the single point that is the top of the sphere whereas an entire row also has to represent the circumference at the "equator". This means the resolution of the texture must be determined by the degree of visual accuracy required at the equator (since that has the fewest texels per unit area). This will result in redundant texels elsewhere on the sphere with the most redundancy at the poles.
+The cube map, on the other hand, does not have so great a degree of variation in texel density so a more appropriate texture resolution can be used.
+
+6.
+Reasoning behind attached UML diagram:
+- All API calls can be contained within a class derived from GfxAdapter allowing the API to be changed if required.
+- In a larger application, it may be preferable to separate GfxAdapter and some theoretical "GfxManager" class so that the adapter ONLY contains wrappers for API specific calls/functionality and the Manager contains all the code to determine resources to bind, rendering order, draw Geometry instances etc.
+- Geometry encapsulates everything for a given draw call: pipeline state, buffers, textures
+
+7.
+The D65 standard illuminant represents the average incident light on Europe from the Sun at midday with no obstructions. It incorporates any atmospheric effects from a clear sky.
+
+8.
+Metamers are colours which appear the same to the eye but have different spectral composition. All colour spaces rely on metamers to represent any given colour using their component colours. E.g. an RGB display will emit only red, green and blue light but can represent yellow because there is a metamer which looks yellow but consists only of red and green.
+
+9.
+RGB, sRGB - Used in most screens and common in image formats. They describe colours in terms of a red, green and blue component. This directly mirrors the make up of the human eye which has cone cells that are sensitive to either red, green or blue light.
+
+HLS - Hue, Luminance, Saturation. Luminance represents the "brightness" of a colour where this ranges from black to the colour's full intensity. Saturation is the "strength" of the colour. A low saturation gives a pale/washed out colour whereas a high saturation will be very vivid. Finally, hue determines which colour is being represented green vs purple vs blue etc.
+To convert to RGB:
+if luminance < 0.5:
+	X = luminance * (1 + saturation)
+else:
+	X = luminance + saturation - luminance * saturation
+Y = 2 * luminance - X
+
+# Rotate hue 120 degrees so it corresponds with each of the the three RGB colours
+R1 = hue + 0.333
+G1 = hue
+B1 = hue - 0.333 
+
+# This next process needs to be applied for each of the RGB components
+# The tests are necessary because different formulae are required based on which third the hue was in
+if 6 * R1 < 1:
+	R = Y + 6*(X-Y)*R1
+elif 2 * R1 < 1:
+	R = R1
+elif 3 * R1 < 2:
+	R = Y + 6*(X-Y)*(0.666 - R1)
+else:
+	R = Y
+
+CIE-XYZ - This colour space has 3 components named X, Y and Z where Y is defined as luminance and Z is the response of the blue cone cells in the eye.
+To convert to RGB:
+RGB = (3.24, -1.53, -0.49) * X
+RGB += (-0.969, 1.88, 0.041) * Y
+RGB += (0.056, -0.204, 1.05) * Z
+
+CIE-LUV - Attempts "perceptual uniformity" i.e. colour distance in this colour space should correspond with how different the colours seem to an observer.
+
+10.
+Tone mapping can be used to give the appearance of a higher dynamic range than is present. It allows all the light intensities in an actual scene to be mapped to displayable colours.
+Tone mapping operators are used which describe how to transform the colour. These include for example the Reinhard operator. These can either be local or global.
+Global tone mapping operators apply the same function over the entire image. This can be implemented in a look up table (LUT). In images with extreme areas of dark and light, this can lead to significant over and under exposure.
+Local tone mapping operators apply a different function to different areas of the image based on their lighting. This can help retain detail across a very high dynamic range because more of the image will be correctly exposed.

@@ -39,13 +39,13 @@ public class Pattern implements Comparable<Pattern>
 	public String getCells() { return cells; }
 
 	// Fills a world with the cells described in the pattern
-	public void initialise(World world)
+	public void initialise(World world) throws PatternFormatException
 	{
 		String[] givenRows = cells.split(" ");
 		for(int y = 0; y < givenRows.length; ++y)
 			for(int x = 0; x < givenRows[y].length(); ++x)
 			{
-				if (givenRows[y].charAt(x) != '0' && givenRows[y].charAt(x) != '1')
+				if (givenRows[y].charAt(x) != '1' && givenRows[y].charAt(x) != '0')
 					throw new PatternFormatException("Invalid pattern format: Malformed pattern '" + cells + "'.");
 				world.setCell(startRow + y, startCol + x, givenRows[y].charAt(x) == '1');
 			}
@@ -54,9 +54,13 @@ public class Pattern implements Comparable<Pattern>
 	private int parseInt(String field, String val) throws PatternFormatException
 	{
 		try
+		{
 			return Integer.parseInt(val);
-		catch (NumberFormatException)
+		}
+		catch (NumberFormatException e)
+		{
 			throw new PatternFormatException("Invalid pattern format: Could not interpret the " + field + " field as a number ('" + val + "' given).");
+		}
 	}
 
 	@Override

@@ -4,9 +4,18 @@ public class ArrayWorld extends World
 {
 	private boolean world[][];
 
-	public ArrayWorld(String format)
+	public ArrayWorld(Pattern p) throws PatternFormatException
 	{
-		super(format);
+		super(p);
+		world = new boolean[getHeight()][getWidth()];
+
+		// Populate world cells
+		getPattern().initialise(this);
+	}
+
+	public ArrayWorld(String s) throws PatternFormatException
+	{
+		super(s);
 		world = new boolean[getHeight()][getWidth()];
 
 		// Populate world cells

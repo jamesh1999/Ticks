@@ -1,0 +1,190 @@
+1. (2009 P1 Q5)
+a)
+Each node is red or black
+The root node is black
+A red node has two black children
+No leaves carry information and all are black
+Any path from a given node to a leaf contains the same number of black nodes
+
+Advantages:
+- Always balanced after insertions
+
+Disadvantages:
+- More complicated to implement than BSTs
+- Insertions take longer (need to construct red nodes) however this does not affect complexity
+
+b)
+2-node:
+
+Black
+ / \
+
+3-node:
+Black
+ / \
+Red
+/ \
+
+4-node:
+ Black
+  / \
+Red Red
+/ \ / \
+
+c)
+Including black leaf nodes, the maximum possible number of nodes is given by 2^(2h-1) - 1 since there will be h-1 red nodes and every node in the tree will have 2 children.
+The minimum possible number of nodes can be achieved with no red nodes thus there is a minimum of 2^h - 1 nodes.
+
+2. (2007 P11 Q9)
+Maintain data locality - A node is an entire read block
+
+a) A B-tree of minimum degree t is a tree where each node contains between t-1 and 2t-1 keys and t to 2t pointers to other nodes.
+
+b) Traverse the tree to the node where the key should be inserted and insert it. If there were already 2t-1 keys, split the new node into two nodes containing t and t-1 keys and insert the middle key into the parent node. Repeat this process up the tree until all nodes have between t-1 and 2t-1 keys (except perhaps the root)
+
+C
+
+AC
+
+ACM
+
+ B
+/ \
+A CM
+
+ B
+/ \
+A CM
+
+ B
+/ \
+A CMR
+
+(B I)
+/ | \
+A C MR
+
+(B I)
+/ | \
+A CD MR
+
+(B I)
+/ | \
+A CDG MR
+
+(B E I)
+/ |  | \
+A CD G MR
+
+(B E I)
+/ |  | \
+A CD G MRX
+
+c) Assume a key is not in a bottom node
+=> It's successor is the least key in the tree formed by the immediate right branch of this key
+
+To show the least key is always in the bottom node, assume it is not in the bottom node.
+Therefore there exists a populated branch such that all keys in the branch are less than the least key
+Thus it is not the least key #
+
+d) i)
+function refill(Node):
+	Adjacent = An adjacent node
+	if Adjacent has > t-1 keys:
+			Split keys evenly between the two nodes
+	else:
+		Merge Node with Adjacent
+		Recursively refill parent if necessary
+
+function delete(Key):
+	if Key is not in the bottom node:
+		Swap it with its successor
+
+	Node = node that Key is in
+	if Node has t-1 keys:
+		refill(Node)
+
+	Remove Key from Node
+
+ii)
+Delete M:
+         J----------V
+  C---G     N---Q-T   Y
+AB DEF HI KL MOP R U X Z
+
+         J---------V
+  C---G     N--Q-T   Y
+AB DEF HI KL OP R U X Z
+
+Delete Q
+         J---------V
+  C---G     N--R-T   Y
+AB DEF HI KL OP Q U X Z
+
+         J--------V
+  C---G     N--R     Y
+AB DEF HI KL OP QTU X Z      <--- Prefer redistribute to merge
+
+         J------- V
+  C---G     N--R    Y
+AB DEF HI KL OP TU X Z
+
+Delete Y
+         J--------V
+  C---G     N--R    Z
+AB DEF HI KL OP TU X Y
+
+         J
+  C---G     N--R--V    
+AB DEF HI KL OP TU XZY
+
+         J
+  C---G     N--R--V    
+AB DEF HI KL OP TU XZ
+
+3. (2008 P10 Q9)
+a)
+0: 35,10,5,
+1: 6,
+2: 2,18,8,
+3: 3,
+4:
+
+b)
+0: 10
+1:
+2: 2
+3: 3
+4:
+5: 35
+6: 6
+7: 5
+8: 18
+9: 8
+
+4. Each entry in the table is stored as a ##key-value## pair. Therefore a direct comparison between the key being searched for and the key found in the table is required. If they are equal then this is the right value otherwise the next place the key would have been stored should be checked. To show the key is not stored in the table, the probe function would either have to complete a cycle without meeting the desired key. Maintain a "deleted" flag to skip removed keys
+
+Problems with linear probing:
+- Hash to nearby
+- Hash to same value
+Have to skip over entire sequence of filled buckets
+
+Problems with quadratic probing:
+- Hash to nearby solved
+- Same value same probing sequence
+
+Double-hashing:
+- Solves same value
+- Hash to nearby with same step size :(
+
+5.
+Path - A series of connected nodes in a graph
+Connected - A graph where there exists a path between every pair of nodes
+Cycle - A path that starts and ends at the same node
+DAG - A directed (edges are unidirectional) acyclic (no cycles exist) graph
+Tree - A graph with no cycles
+Bipartite - A graph where the nodes can be split into two sets with all edges connecting a node in each set
+Diameter - The largest shortest-path between any two nodes
+
+6. a) Queue
+   b) Stack

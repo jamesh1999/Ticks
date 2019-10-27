@@ -1,0 +1,120 @@
+1994P8Q6.
+a) Interview a group of 20 cyclists consisting of a mix of students, deliveroo workers and sports cyclists. They would be asked what to them is the most important thing that the system does and how it should perform that task. I believe the main needs would be for a quick time to input the journey (phone keyboards are slow to use so this must involve minimal key presses). It must also be quick to actually file the journey. Both these requirements are important to deliveroo riders because they will frequently be inputting different routes. For students and sports cyclists, I believe the system must support a series of 'favourite' routes so that they can reuse routes they cycle frequently.
+
+- Cyclists could be considered primary/secondary
+- Drivers on road are tertiary stakeholders (no direct interaction)
+- Council paying for system (facilitating stakeholders)
+
+- Randomly survey people on bicycles to ensure sample is representative!
+
+- Observe road users to determine traffic levels on different roads
+
+Functional Requirements - nouns/verbs (tasks system should perform)
+Non-Functional Requirements - adjectives e.g. schedule available soon after route entered
+
+
+b)
+Selecting a route
+1. First the user opens the app
+2. If the route they desire is cycled frequently they can search for a name in their favourites:
+	-Press keypad 1
+	-Type the name of the route until the system calls the correct one
+	-Press # to select or * to cancel
+3. If the route has been cycled recently they can select it from their history:
+	-Press keypad 2
+	-Operator will read out the dates they cycled a series of routes and give a corresponding number
+	-Enter the number of the route
+	-Press # for the next page of historical routes or * to cancel
+4. If the route is new, the user will want to enter it from scratch
+	-The users current location is assumed as the start of the route
+	-The user enters the street name they wish to move onto
+	-When the system autocompletes the correct street, the user presses #
+	-This process repeats until all roads have been inputted
+	-The user presses # to select the route
+
+Adding/Removing favourites
+1. First the user opens the app
+2. To add a favourite, they press 2 to enter the historical routes menu
+3. They press 0 to indicate they wish to add a favourite
+4. They continue as normal to select the new favourite route
+
+2. To remove a favourite, they enter the favourites menu with 1
+3. They press 0 to indicate they wish to remove a favourite
+4. They continue as normal to select the new favourite route
+
+- Select language
+- Read out route that was selected
+
+The users thought process with this interface will be:
+1. Have i cycled this route before (if so, was it recently or did i add it as a favourite)
+2. Otherwise, which roads does this new route take me down in what order
+
+c) Analysis can be performed directly by calling in some users of the application to give their feedback and opinions on their experiences. This could be used to identify improvements as well as to evaluate the current system. Additionally, it can be performed indirectly by analysing how people interract with the system: if they frequently enter favourites and use the history menu then this is a useful feature for saving their time. Alternatively, analysis can be performed based on the data they input to better preempt the next road in the route. E.g. their might be a common pattern where a user moves from one road to another. This second road should be the first suggested therefore after the user enters the first.
+
+Prototype with person reading out script
+Focus groups, interviews, questionnaires
+
+Measure number of errors
+Check for repeat use of system
+Count cyclists on roads and compare to before
+
+1996P7Q13.
+A:
+This approach uses more of the doctor's time and could also lead the patient to hide information they might not be comfortable sharing in person.
+Pros - Guarantees the information will be entered in correctly
+	 - The doctor might pick up on abnormalities and make diagnoses on the spot
+	 - Improves communication between patients and their doctors by forcing a face to face meeting
+	 - More consistent data format
+Cons - Doctors' schedules are often very busy and fitting in extra hours to greet patients is unfeasible
+	 - The details must pass between 2 people so there is a greater chance of introducing mistakes e.g. patient would notice if they made a typo in their DoB but the doctor may not
+
+B:
+This approach allows the patient to input whatever details they wish when they are not medically qualified.
+Pros - Doctors' time is saved because the patients can work independantly
+	 - Therefore the patient is able to spend more time and more carefully answer the questions
+Cons - The patient may not know how to answer some of the more medically focussed questions they are given
+	 - By the point the application is processed, the patient still hasnt come face to face with their doctor. This makes the encounter impersonal but also removes an opportunity for the patient to decide they want to apply to another practice.
+	 - Dedicated computer needs to be made available
+
+Patient might give more info to computer or doctor (nobody knows??)
+
+b)
+More complicated interface for doctors could confuse patients
+Simpler interface for patients might limit what information doctors can convey
+Patients/doctors slower with interfaces not designed for them
+
+Measure patient speed/error rate/calls for assistance using patient systems
+Ask doctors who have used both systems on opinions
+
+Could give doctors more technical questions and patient simple answer questions
+
+3.a) Passengers, Cabin Crew, Airlines, Film industry
+Card Sorting
+	Closed categories: Choices are given to the users
+	Open categories: Choices are preselected
+
+b) Primary: cashier, tert: customer, owner
+Observe cashiers and see step by step what they do
+- Ask whether observation was representative: are there more jobs the register has to perform
+- Ask for their improvements
+- Market research: look at other people's checkouts for inspiration
+
+c)
+Primary: people ordering and restocking shelves
+
+- Issues from teams doing same job in different countries
+- Products going off
+- Observe specific warehouses and how they operate
+
+- Large scale survey (low response rate but many people)
+
+d)
+Primary: Users(Producers/Consumers), Secondary: Advertisers, Tertiary: Competitors
+
+- Web analytics from users (# photos viewed, length of browsing session, how often they visit)
+
+AB Testing - Users put off by change (initial decrease)
+
+4.a)
+-The website is primarily for photos so the edits allowed should be focussed on adjusting the composition of the photo rather than drawing new images.
+-The editing tools should be usable on mobile devices - desktops since all these devices can use a web browser.

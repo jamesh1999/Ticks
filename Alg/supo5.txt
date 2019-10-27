@@ -1,0 +1,200 @@
+2006P4Q3
+a) The minimum spanning tree of a graph is the tree with the smallest total edge weight.
+- The graph must be connected because there must exist exactly one path from every node to every other node (must be a tree)
+- The graph must be weighted to define a minimum tree. Otherwise every tree would be valid
+- The graph must be undirected because from our definition a tree is undirected (we could define a tree on a directed graph where there exists exactly one path from a given root node to every other node and a corresponding MST)
+
+b)
+Safe Edge - The minimum weight edge of the current graph which can be added without violating the properties of an MST
+Cut - A splitting of the vertices in the graph into 2 subsets
+Respecting a set of edges - A cut respects a set of edges if no edge in the set crosses the cut i.e. no edge is cut in the process of making the cut
+
+d)
+i) False
+Consider the graph
+A ---- B ---- C
+   1      1
+And the cut that splits the graph into {B}, {A, C}
+There are two edges of equal minimum weight 1 crossing the cut but the MST is unique
+
+ii) True
+Assume each cut has a unique minimum edge crossing it
+
+First we show that the minimum edge crossing any cut must be in the MST:
+	For an arbitrary cut let E be he minimum edge crossing it
+	Now let U,V be the vertices E connects
+
+	There exists one path between U&V since the MST is a valid spanning tree
+	U and V are in disjoint subsets of the cut graph => at least one edge in the path U-V must cross the cut
+
+	Let ST be the spanning tree containing E and let ST' be a spanning tree containing a different edge E' crossing the cut
+	Weight{E} < Weight{E'} => Weight{ST} < Weight{ST'}
+	Thus ST' cannot be the MST and E is in the MST
+
+Now we show that an entire spanning tree worth of edges can be identified by making cuts:
+	For the base case:
+		Take 1 vertex and no edges
+		This is the initial spanning tree ST
+	To add the other nodes:
+		Make a cut separating graph G into the vertices currently in ST and those not
+		The minimum edge E crossing the cut thus adds a new vertex to ST
+		Repeat this N-1 times where N is the number of vertices in G
+
+From this deduce that:
+	(1) All minimum edges crossing a cut are in the MST
+	(2) For every edge E in the MST there is some cut such that E is the minimum crossing edge
+
+If the MST for the graph is non unique, there is an edge E which is not contained within another MST
+By (2) we can make a cut in G such that E is the minimum crossing edge
+However by (1) this edge must therefore be contained in every MST
+This is a contradiction thus the MST is unique
+QED
+
+2000P4Q6
+Prim's Alorithm:
+	MST <- {}
+
+	PriorityQueue.Push(Values = Vertices in G, Priorities = [inf, ...])
+	PriorityQueue.UpdatePriority(Starting vertex, 0)
+
+	until PriorityQueue empty repeat:
+		Next <- PriorityQueue.Pop()
+
+		MST += Next
+		MST += Edge(Next.ComeFrom, Next)
+
+		for each Edge starting at Next:
+			if Edge.Weight < PriorityQueue.PriorityOf(Edge.Dest) then:
+				PriorityQueue.UpdatePriority(Edge.Dest, Edge.Weight)
+				Edge.Dest.ComeFrom <- Next
+
+Prim's procuces a spanning tree since ONE edge connecting each vertex to the others is added
+Prim's spanning tree is the MST since only minimum edges from cuts separating vertices in the MST and those not in the MST are added
+
+Push * V O(1)
+Pop * V O(logV)
+DecreaseKey * E O(1)
+
+= O(E + VlogV)
+
+Kruskal's Algorithm:
+	MST <- {}
+
+	DisjointSet <- { {V} for each vertex V in G }
+
+	Sort Edges in ascending order by Edge.Weight
+
+	for Edge in Edges:
+		U, V <- Vertices Edge connect
+
+		if DisjointSet.Find(U) != DisjointSet.Find(V):
+			MST <- Edge
+			DisjointSet.Merge(U, V)
+
+MakeSet * V O(1)
+Merge * V-1 O(1)
+FindSet * 2E O(1)
+
+= O(V + E) => O(E)
+
+But sorting is O(ElogE)
+But E <= V^2
+=> O((2)ElogV)
+
+
+Kruskal's satisfies the tree properties since exactly 1 edge connects each disjoint set => Exactly one path between every node in set A, set B
+Kruskal's produces the Minimum ST since only the minimum edge from a given cut (between two of the disjoint sets) is added to the MST
+
+The complexity of Prim's algorithm is O(E + VlogV) whereas the complexity of Kruskal's is O(ElogE) therefore for sparse graphs, Kruskal's will have better aymptotic complexity whereas dense graphs will favour Prim's algorithm. Furthermore, Prim's can be given a specific starting point. This makes it possible to begin the search for the MST in the most relevant section of the graph and continue evaluation lazily.
+
+- Prims always asymptotically quicker
+- Kruskals useful intermediate stages: images each px is a node and weight is low from similar colours
+ => Kruskals finds similar clusters
+ N clusters means execute V-N times
+- PQ fib heap large constant in complexity so Prim's slow in practice
+- Prim's similar to Dijkstra's
+- Kruskal's faster if edges already sorted
+- Cannot parallelize PQ but sort can
+
+3. 
+Nodes w/ only edges in: D, I
+... D, I
+
+Nodes w/only edges in:  F, G, H
+... F, G, H, D, I
+
+Nodes w/only edges in: C, E
+... C, E, F, G, H, D, I
+
+Nodes w/only edges in: B
+... B, C, E, F, G, H, D, I
+
+A, B, C, E, F, G, H, D, I
+
+O(V + E)
+
+4.
+def IsDAG(Graph):
+	M = Matrix[Mij = 1 if there is an edge from Graph(i) to Graph(j)
+				   = 0 otherwise]
+
+	Acc = M
+
+	for i = 1 up to number of vertices:
+		Acc *= M
+		If there is a nonzero element in the leading diagonal of Acc: return false
+
+	return true
+
+-Literally any search so long as all vertices visited overall
+-All pairs shortest path (above)
+-O(V + E) if you topological sort then check validity (no topological sort for graph w/ cycles)
+
+2007P4Q9
+a)
+i - Flow network (any graph where each edge has capacity & there is a source/sink vertex)
+ii - A function mapping each edge to its respective flow such that each flow is less than the capacity and the net in to one vertex is equal to the net out
+iii - Total flow out of source - flow in
+iv - Residual network has no edge where there is no 'spare' capacity
+v - 'Capacity - Flow' for each edge
+vi - A path from source to sink with residual capacity on every edge it contains (any path in residual network)
+
+b)
+def FordFulkerson(Graph):
+	tot_flow = 0
+	while Aug <- FindAugmentingPath(Graph):
+		new_flow = Minimum of Capacity[Edge] - Flow[Edge] for edge in Aug
+
+		tot_flow += new_flow
+
+		Flow[Edge] += new_flow
+		Flow[Edge.Reverse] -= new_flow
+
+	return tot_flow
+
+def FordFulkerson(Graph):
+	Initialize flow to 0 along all edges
+	while Aug <- FindAugmentingPath(Graph):
+		Push as much flow as posssible through Aug
+
+Method not algorithm because it does not define how to find an augmenting path
+
+This assumes there are no 
+Each graph has a finite flow from A to B
+An augmenting path only exists if tot_flow is less than the theoretical maximum flow
+new_flow will always be greater than 0
+Thus tot_flow strictly increases at each iteration and must reach the theoretical maximum flow where the algorithm terminates
+
+This is known if all capacities are integers since there new_flow is guaranteed to also be an integer thus there are only finitely many iterations (at most 1 * theoretical maximum flow) that can take place
+
+c)
+- Could exceed capacity for edges when flows added
+
+d) A matching bipartite graph is a bipartite graph where every vertex has zero or one edge connecting to it. The maximum matching has the greatest number of edges.
+
+Create a source vertex connecting to each of the vertices in set A with weight 1
+Create a sink with an edge connecting each vertex in set B with weight 1
+
+Run FF and the edges with flow are the matching
+
+e)

@@ -1,0 +1,45 @@
+Continuity:
+
+Closure:
+Grouping of similar elements
+
+Proximity:
+Physical grouping on page
+Foreground/background - Make distinctions e.g. put ui elements in box to distinguish from background
+
+Similarity:
+
+
+Cognitive walkthrough
+
+Recording information-what worked/didn't and WHY
+Redesign
+
+Heuristic analysis - multiple evaluators
+
+Might not be aware of hidden tabs (visibility--)
+
+Keyboard shortcuts (efficiancy)
+
+Non visual objects - unclear
+
+Difficult to evaluate own task flow diagram because it is what feels logical to you already
+
+Mental idea of how application will work influence interaction
+
+External might include e.g. shopping list & other aids
+
+Sensory buffer - short term (on the spot)
+Working memory - 10s or so, current state (7+-2 items)
+Long term
+
+Attention! S->W
+Recall! L->W
+Rehearsal! W->L
+
+End body simulation - feedback makes more useful
+
+Assumptions about user knowledge / state of application
+
+Embarassed people give bad information, sample wrong people
+Sample just contains people using one prior system - expect new system to behave the same

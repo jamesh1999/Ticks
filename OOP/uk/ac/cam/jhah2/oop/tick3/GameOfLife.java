@@ -1,27 +1,17 @@
 package uk.ac.cam.jhah2.oop.tick3;
 
 import java.lang.StringBuilder;
-import java.util.Scanner;
+import java.util.*;
+import java.io.*;
 
 public class GameOfLife
 {
+	private PatternStore patternStore;
 	private World world;
 
-	public GameOfLife(World w)
+	public GameOfLife(PatternStore ps)
 	{
-		world = w;
-	}
-
-	public void play() throws java.io.IOException
-	{
-		Scanner sc = new Scanner(System.in);
-		String userResponse = "";
-		while (!userResponse.equals("q"))
-		{
-			print();
-			userResponse = sc.nextLine();
-			world.nextGeneration();
-		}
+		patternStore = ps;
 	}
 
 	public void print()
@@ -42,27 +32,72 @@ public class GameOfLife
 		System.out.println(sb.toString());
 	}
 
-	public static void main(String[] args) throws java.io.IOException, Exception
-	{
-		World w = null;
-		String format = args[args.length - 1];
 
-		for (String arg : args)
-		{
-			switch (arg)
-			{
-			case "--array":
-				w = new ArrayWorld(format);
-				break;
-			case "--packed":
-				w = new PackedWorld(format);
-				break;
-			default:
-				break;
-			}
-		}
+	public void play() throws IOException, PatternFormatException {
+        
+  String response="";
+  BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+    
+  System.out.println("Please select a pattern to play (l to list:");
+  while (!response.equals("q")) {
+    response = in.readLine();
+    System.out.println(response);
+    if (response.equals("f")) {
+      if (world == null) {
+        System.out.println("Please select a pattern to play (l to list):");
+      }
+      else {
+        world.nextGeneration();
+        print();
+      }
+    }
+    else if (response.equals("l")) {
+      List<Pattern> names = patternStore.getPatternsNameSorted();
+      int i = 0;
+      for (Pattern p : names) {
+        System.out.println(i+" "+p.getName()+"  ("+p.getAuthor()+")");
+        i++;
+      }
+    }
+    else if (response.startsWith("p")) {
+      List<Pattern> names = patternStore.getPatternsNameSorted();
+      int patIdx = Integer.parseInt(response.substring(1, response.length()));
+      Pattern p = names.get(patIdx);
 
-		GameOfLife game = new GameOfLife(w);
-		game.play();
-	}
+      if (p.getWidth() * p.getHeight() > 64)
+      	world = new ArrayWorld(p);
+      else
+      	try
+      	{
+      	world = new PackedWorld(p);
+      }
+      catch (PatternFormatException e)
+      {
+      	throw e;
+      }
+      catch (Exception e)
+      { // We'll just pretend this isn't horribly bad practice
+      }
+
+      print();
+    } 
+  }
 }
+
+public static void main(String args[]) throws IOException, PatternFormatException {
+  if (args.length!=1) {
+    System.out.println("Usage: java GameOfLife <path/url to store>");
+    return;
+  }
+  
+  try {
+    PatternStore ps = new PatternStore(args[0]);
+    GameOfLife gol = new GameOfLife(ps);    
+    gol.play();
+  }
+  catch (IOException ioe) {
+    System.out.println("Failed to load pattern store");
+  }
+}
+}
+

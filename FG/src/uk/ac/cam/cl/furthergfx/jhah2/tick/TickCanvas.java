@@ -57,7 +57,7 @@ public class TickCanvas {
    * Set up Display
    */
   protected void setupDisplay() {
-    PixelFormat pixelFormat = new PixelFormat(8,8,0,8);
+    PixelFormat pixelFormat = new PixelFormat();
     ContextAttribs contextAtrributes = new ContextAttribs(3, 3)
             .withForwardCompatible(true)
             .withProfileCore(true);

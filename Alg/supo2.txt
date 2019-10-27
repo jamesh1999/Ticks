@@ -1,0 +1,224 @@
+1. a) T(n) = T(n-2) + k
+- Same complexity
+- Half the actual time since there are half the recursive steps
+
+Try T(n) = n/2 * k
+=> T(n) = ((n-2)/2 * k) + k
+        = (n/2 - 1) * k + k
+        = n/2 * k - k + k
+        = n/2 * k
+
+b) T(n) = T(n-1) + 2k
+- Same complexity
+- Double the actual time since the constant being added is double
+
+Try T(n) = 2n * k
+=> T(n) = 2(n-1) * k + 2k
+        = 2n * k - 2k + 2k
+        = 2n * k
+
+c) T(n) = 2 T(n-1) + k
+- Different complexity: O(2^n) instead of O(n) since each step has two recursive calls
+
+Try T(n) = (2^n - 1) * k
+=> T(n) = 2 * (2^(n-1) - 1) * k + k
+        = (2^n - 2) * k + k
+        = (2^n - 1) * k
+
+2. a) T(n) = T(n/2) + k
+Try T(n) = lg(n) * k
+=> T(n) = lg(n/2) * k + k
+        = (lg(n) - 1) * k + k
+        = lg(n) * k
+
+b) T(n) = 2 T(n/2) + k * n
+Try T(n) = k * n lg(n)
+=> T(n) = 2 * (k * n/2 * lg(n/2)) + k * n
+        = k * n lg(n/2) + k * n
+        = k * n (lg(n) - 1) + k * n
+        = k * n (lg(n) - 1) + k * n
+        = k * n lg(n) - k * n + k * n
+        = k * n lg(n)
+
+c) T(n) = T(n-1) + T(1) + k * n
+Try T(n) = k * n^2
+=> T(n) = k * (n-1)^2 + k*1*1 + k*n
+        = k * n^2 - k*2n + k + k + k*n
+        = k * n^2 - k*n + 2k
+        = Theta(n^2)
+        => Since both our initial guess for T(n) and the result are Theta(n^2) we can say the complexity is Theta(n^2)
+
+d) T(n) = T(0.1n) + T(0.9n) + k*n
+Try T(n) = k * n lg(n)
+=> T(n) = 0.1k * n lg(0.1n) + 0.9k * n lg(0.9n) + k*n
+        = 0.1k * n * (lg(n) + lg(0.1)) + 0.9k * n * (lg(n) + lg(0.9)) + k*n
+        = k * n * lg(n) + 0.1k * n * lg(0.1) + 0.9k * n * lg(0.9) + k * n
+        = k * n * lg(n) + k * n * (1 + 0.1lg(0.1) + 0.9lg(0.9))
+        = k * n * lg(n) + k1 * n
+        = Theta(n lg(n))
+        => The complexity of T(n) is Theta(n lg(n))
+
+3.a) F#
+let fib n =
+	match n with
+	| 0 -> 1
+	| 1 -> 1
+	| x -> fib (n-1) + fib (n-2)
+
+(Each requires fib(n) + (fib(n) - 1) calls to fib since the result is the sum of fib(n) 1s and this takes (fib(n) - 1) additions and one of these operations is performed in each call to fib)
+F10 : 177
+F20 : 21891
+F30 : 2692537
+
+b) Python
+memo = {}
+def fib(n):
+	if n in memo: return memo[n]
+
+	if n == 0 or n == 1:
+		ret = 1
+	else:
+		ret = fib(n-1) + fib(n-2)
+
+	memo[n] = ret
+	return ret
+
+This solution is O(n) and fib(n) will have n calls to fib (assuming an initially empty memo)
+
+4.
+Consider 3 matrices of the given dimensions:
+A (1x3), B(3x3), C(3x3)
+
+When computing A*B*C:
+If the multiplication is performed (A*B)*C fewer scalar multiplications will be performed since A*B is a 1x3 matrix.
+On the other hand A*(B*C) will result in more scalar multiplications since B*C is a 3x3 matrix.
+
+To multiply a (mxn) matrix by an (ixj) matrix:
+The resultans matrix has size (mxj) thus there are m*j dot products which each require n (or i) scalar multiplications. Thus m*n*j scalar multiplications.
+
+For (A*B)*C:
+1*3*3 + 1*3*3 = 18
+
+For A*(B*C):
+1*3*3 + 3*3*3 = 36
+
+5.a)
+function DivideRouteBetween(origin, destination):
+	if there is a route directly between the origin and destination then
+		Pick the shortest one
+	else
+		Compute the midpoint of the origin/destination city
+		Find the city closest to this midpoint (excluding the origin and destination of this call to the function or any other calls)
+		return RouteBetween(origin, midCity) + RouteBetween(midCity, destination)
+
+This could work well when routes between cities are fairly direct (i.e. closely follow a straight line between the two cities connecting one or more along that line in the process). This is going to be true when cities form densely connected graphs. However, there will be issues when routes are indirect. Consider the case where there is a city directly between the origin and destination that is ONLY connected to the origin. This city will be picked by the algorithm and there will be no path to get from here to the destination so it will never be able to terminate in its current state.
+
+b)
+function GreedyRouteBetween(origin, destination):
+	bestRoad = null
+	bestScore = null
+	for each Road from the origin:
+		Progress = 1 - Distance(destination, Road.Destination) / Distance(origin, destination)
+		if Progress / Road.Length > bestScore then
+			bestRoad = Road
+			bestScore = Progress / Road.Length
+	return bestRoad + RouteBetween(bestRoad.Destination, destination)
+
+This algorithm could work well when each step of the optimal route makes progress towards the destination city. However, it makes no account for situations where a step requires going further from the destination. In fact, where this is the only possibility, the algorithm may never terminate. Like in part a, the ideal case would be that the optimal route always follows a pretty much straight path between the origin and destination while connecting one or more cities along the way.
+
+c)
+function GreedyBacktrackingRouteBetween(origin, destination):
+	Roads = All roads from origin
+	Sort Roads in descending order by Progress / Road.Length where
+		Progress = 1 - Distance(destination, Road.Destination) / Distance(origin, destination)
+
+	for each Road in Roads:
+		if Road.Progress < 0 then
+			return "Backtrack!"
+
+		// If successful route found
+		if RouteBetween(Road.Destination, destination) != "Backtrack!" then
+			return Road + RouteBetween(Road.destination, destination)
+	
+	// No more roads
+	return "Backtrack!"
+
+This solves the main issue with the original greedy algorithm where it may never terminate if it encounters a position where no roads make forward progress to the destination. The assumption (precondition) of this new algorithm is that there exists a route from the origin to the destination where no backwards steps are taken. This algorithm will be more practical in the real world where it will terminate no matter what the given input is. (Although terminate may mean it simply returns "Backtrack!" if there is no route that constantly makes progress towards the destination)
+
+d)
+In the extreme case, this method could mean brute force random sequences of connecting roads:
+function MMMethodRouteBetween(origin, destination):
+	BestRoute = null
+
+	repeat 1000000 times
+		Route = []
+		repeat MAX_LENGTH times
+			Pick a random road connecting to Route.Destination
+			Route += road
+
+			if Route.Destination is destination and Route.Length < BestRoute.Length:
+				BestRoute = Route
+	return BestRoute
+
+However, this will only give good results for a large number of repetitions so a more directed approach may be better:
+function MMMethodRouteBetween(origin, destination):
+	BestRoute = null
+
+	repeat 1000000 times
+		Route = []
+		Cities = Pick N random cities
+		
+		for each City in Cities:
+			Route += DivideRouteBetween(Route.destination, City)
+
+		if Route.Destination is destination and Route.Length < BestRoute.Length:
+			BestRoute = Route
+	return BestRoute
+
+Which could be further modified by "intelligently" picking the number or random cities & the cities
+(e.g.
+NumberOfCities = Distance(origin, destination) / AverageRoadLength / SomeConstant
+Cities = Pick NumberOfCities random cities within a radius of 2*Distance(origin, destination) from Midpoint(origin, destination))
+
+6.
+[m11, m12, m13, m14, m15, m21, m22, m23, m24, m25, m31, m32, m33, m34, m35]
+
+[p_m1, p_m2, p_m3]
+
+p_m1 : [m11, m12, m13, m14, m15]
+p_m2 : [m21, m22, m23, m24, m25]
+p_m3 : [m31, m32, m33, m34, m35]
+
+7.
+a. Stack: In a backtracking algorithm to retreive the most recent decision for backtracking
+- Only the most recent decision the algorithm made will need to be accessed
+
+b. List: Recording the number of users of a service every day
+- The only modification required is prepending the new day's information (O(1))
+- The structure easily facilitates iterating over the data to look for trends, perform statistical analysis etc
+
+c. Queue: Handling queries to a website
+- First in first out required: The query that arrived first should be the first to be processed
+- Queries will be handled sequentially so random access is not required
+
+d. Deque: (Expanding on the above) Load balancing queries to a website i.e. Each server maintains a deque of queries which operate normally as queues. If one server empties its deque, it can retrieve a query that is not currently being processed from the back of another server's deques
+- Access to both the front and rear of the deque required (more than simply a queue)
+- No need for random access
+
+e. Dictionary: Maintaining memoized results from a function
+- Parameters can be hashed and the function result queried in constant time
+
+f. Set: Maintaining a group of visited nodes in a graph (could be cities as in 5)
+- Provides constant time access to any of the cities to check whether they have been visited
+
+8. 4
+  / \
+ 2   6
+/ \ / \
+1 3 5 7
+
+Search for 1 thus the set B of keys on the path is {1, 2, 4}
+No keys to the left thus set A is {}
+Keys to the right (set C) are {3, 5, 6, 7}
+
+3 < 4 thus Professor Bunyan is incorrect

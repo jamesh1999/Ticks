@@ -1,0 +1,47 @@
+3.1.
+- Address range reserved for devices (memory mapped IO)
+- No separate instructions required (just load/store)
+b
+- Through system calls (OS provides abstraction)
+
+2. 
+vv Quite often disable interrupts so interrupt not interrupted
+- HDD interrupt:
+ - Copy data HDD -> RAM
+ - Change process state Waiting -> Ready
+ - Begin next job in HDD queue
+^^^ Enable interrupts after
+THEN schedule() (in case new process put onto CPU)
+
+DMA v. CPU Addresss bus contention (no issue if CPU using cache only)
+
+
+3.
+
+4.
+Hard link - Pointer to inode of file (file deleted once all hard links removed, cant introduce cycles)
+Soft link - Path to file (can soft link directories, file can be deleted / inode changed)
+
+- Make blocks bigger
+- More intelligent block choice
+- Redundant superblocks to prevent disk head crashes etc
+
+- IO jobs given lower priority numbers = higher
+More CPU time = higher number
+
+- Cannot decrease own nice value
+
+- Shell is first user mode process (acts as a parent)
+1. Find executable user gave it
+2. Create process running ex
+3. Pass arguments
+4. Wait for process to terminate
+
+Pipes:
+Create file where one reads and other writes
+
+pipe() syscall returns 2 fd's one r one w
+
+Ex on data segment for JIT compilation, VMs etc.
+
+Kernel has to provide ex permission

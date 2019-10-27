@@ -1,0 +1,27 @@
+Residuals might improve or STAY THE SAME
+( Should eventually reach perfect fit )
+
+R^2 negative numbers ARE worse than 0
+
+
+B=P-1 A P
+PB = AP
+PBv=lPv=APv
+
+det(B-lI)=det(P-1AP -lI)
+
+56
+A^T : same eigen values as A
+A^T (1,1,1,1) = (k,k,k,k) = k*(1,1,1,1)
+
+Perpendicular & the in plane
+
+Generalize eigenvector/value
+A^T = lA
+
+Symmetric/Antisymmetric matrices l = +/-1
+
+pi/4 is less than 1 = fast convergance
+
+ln(f) = ln((1+m) * 2^exp)
+	= ln(1+m) + exp ln2

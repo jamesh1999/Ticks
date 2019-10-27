@@ -4,6 +4,17 @@ public class PackedWorld extends World
 {
 	private long world;
 
+	public PackedWorld(Pattern p) throws Exception
+	{
+		super(p);
+
+		int bits = getWidth() * getHeight();
+		if (bits > 64) throw new Exception("The given world is too large to be packed");
+
+		// Populate world cells
+		getPattern().initialise(this);
+	}
+
 	public PackedWorld(String s) throws Exception
 	{
 		super(s);

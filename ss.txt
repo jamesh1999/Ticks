@@ -1,0 +1,41 @@
+Discretionary vs Mandatory access control
+Win/linux - discretionary (to aid user rather than keep secrets)
+
+Mandatory - can't give away priviledges
+
+Win/linux not necessarily distinct heirarchy
+
+
+No write down - Prevent malware with high level security clearance leaking information to lower levels
+Write down - includes actions like sending the information over internet/logging in etc.
+
+Small information might not be information leakage
+Large scale allows patterns to be identified (secret information)
+
+
+
+13. Read request is a write down (embed information from TOP SECRET document in filename field etc.)
+Have TOP SECRET process on B which handles all requests at that level
+
+Covert channels: power, cache, cpu utilisation, io utilisation...
+
+Call up person revealing personal details you've discovered online to verify you're the bank etc.
+Captcha error - do something completely routine by mistake
+
+Password restrictions - formulaeic easy to remember passwords & people write down passwords
+
+Nonce - Used once (prevents sniffing and reuse of packets, passwords etc.)
+
+8.aiv
+Nobody who's responsible for things going wrong (their fault)
+Nobody who's job it is to fix problems
+ai
+Changing specification = lack of testing & bugs that weren't fixed before deployment
+For safety critical design:
+-Include minimal features
+-Use waterfall design (incompatible with making late changes)
+-Have end user on design team to ensure requirements are correct from beginning
+-Locally iterative to design interface then move on!
+aii
+Different drivers had preferred routes/drivers
+Drivers park out of signal range to eat lunch uninterrupted

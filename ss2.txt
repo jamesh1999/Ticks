@@ -1,0 +1,49 @@
+2008P5Q1.
+a) - Limit language features to prevent the chance of bugs e.g. no recursive functions, brackets around ifs, no implit conversions (subset of an existing language, statically typed) (ML could be implemented incorrectly)
+(C is closer to the assembly actually being executed)
+Prove code is correct Hoare logic
+Exhaustive testing if possible
+
+Implement multiple copies in isolation and go with majority result
+
+(High level for error resistant)
+
+- Waterfall
+
+b) Spiral - con: different customers will introduce new features each iteration which could break problems
+Waterfall - con: not going to support newer trucks, generators, pumps
+(GANTT updating can encourage people to work to specific milestones)
+
+c) Spiral - New features
+(Evolutionary model has no end)
+
+(Don't have entirely separate dev/test teams - bug must be responsibility of its programmer)
+(Regression testing)
+ab testing
+
+d)
+
+- Iterative
+- Modularization
+- Programs will rely on features that aren't actual features
+- IDEs take on simple tasks
+
+2011
+PURGE/GANTT charts work well w/ waterfall
+
+Users wont know what they want until they have something tangible
+
+Spiral model officially is a fixed number of iterations
+
+Most uncertain features first - more time to modify
+Most essential first too
+Hardest to implement first - determine feasibility early on
+
+Lawyers modify terms/conditions to resolve problem
+Iterative dev model for detector
+AB testing
+Dev team monitor sample of positive results continuously
+
+Same problem rephrased gives different results in terms of gain/loss
+
+EMV Readers cost - No longer a common

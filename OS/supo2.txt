@@ -1,0 +1,38 @@
+Segmentation advantages:
+- Debugging / Segfaults (easy to check if offset > limit)
+- Easlily limit/give access to specific segments (need segment ID to share)
+
+Disadvantages from external fragmentation: finding space to fit large segments = lots of small segments?
+
+Paging results in internal fragmentation
+
+Paged segments can avoid both + advantages from before
+
+
+Pages easy to "page out" to virtual memory (flag in PT)
+
+Convenient page table size = one page
+(don't have to try and fit multiple PTs in one page, can page out PTs etc)
+
+Page heirarchy lookup implemented in HW (Page table walker)
+
+L1 Not flushed on ctx switch just TLB (or TLB can store PID too)
+
+Paging can only error if the requested page has not been allocated
+
+Most programming languages have their own memory managed which requests additional pages etc from OS
+
+Copy-on-write used when creating a new process: new process often calls exec immediately so it throws away the shared data (wasteful to copy beforehand) & for zero frames when first allocated, shared code segments too
+
+Timers&interrupts - hand control back to OS
+Hardware memory management - Enforce memory only asigned to one process
+Kernal vs user mode (series of levels for e.g. VM on OS on hypervisor)
+
+System call instruction on CPU (register to contain system call instruction & fill buffers in memory with relevant data) 
+
+BIOS is a device visible to OS that tells what memory etc available
+
+Page use count implementation:
+Write pages unreadable
+Catch read errors
+Periodically set unreadable again and integrate errors over time

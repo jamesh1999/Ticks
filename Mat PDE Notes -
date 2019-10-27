@@ -1,0 +1,17 @@
+Mat PDE Notes -
+2 - Get to most general case : fourier series
+  - Apply boundary conditions after
+  - With constants you can absorb imaginary parts
+  - Multiply through sin(mx) then integrate [0,pi] to "project fourier series"
+
+4 - Waves: easy to check dimensions to see if valid
+
+
+
+Checks:
+Dimensions
+Indices
+Limits
+
+
+414421
