@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL13;
 
 public class Texture {
 
-  public static int load(String filename) {
+  public static int load(String filename, int idx) {
     ByteBuffer buffer = null;
     int tWidth = 0;
     int tHeight = 0;
@@ -40,7 +40,7 @@ public class Texture {
 
     // Create a new texture object in memory and bind it
     int texId = GL11.glGenTextures();
-    GL13.glActiveTexture(GL13.GL_TEXTURE0);
+    GL13.glActiveTexture(GL13.GL_TEXTURE0 + idx);
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
 
     // All RGB bytes are aligned to each other and each component is 1 byte
