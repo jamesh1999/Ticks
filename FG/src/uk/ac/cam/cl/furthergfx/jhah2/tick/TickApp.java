@@ -54,6 +54,8 @@ public class TickApp extends TickCanvas {
 
     Texture.load("resources/sky.jpg", 0);
     Texture.load("resources/seabed.jpg", 2);
+    Texture.load("resources/seanorm.jpg", 3);
+    Texture.load("resources/seabump.jpg", 4);
   }
 
   @Override
@@ -240,9 +242,13 @@ public class TickApp extends TickCanvas {
   private void updateTextures() {
     int skyLoc = GL20.glGetUniformLocation(program, "texSky");
     int bedLoc = GL20.glGetUniformLocation(program, "texBed");
+    int normLoc = GL20.glGetUniformLocation(program, "texNorm");
+    int bumpLoc = GL20.glGetUniformLocation(program, "texBump");
 
     GL20.glUniform1i(skyLoc,  0);
     GL20.glUniform1i(bedLoc,  2);
+    GL20.glUniform1i(normLoc, 3);
+    GL20.glUniform1i(bumpLoc, 4);
   }
 
   private void updateStepCountUniform() {
@@ -283,8 +289,8 @@ public class TickApp extends TickCanvas {
 
   private void takeScreenshot(String path) {
     int bpp = 4;
-    int w = 1024;
-    int h = 1024;
+    int w = 2560;
+    int h = 1440;
     GLFrameBuffer fb = new GLFrameBuffer(w, h);
 
     fb.activate();

@@ -7,6 +7,8 @@ uniform vec3 camDir;
 uniform vec3 camUp;
 uniform sampler2D texSky;
 uniform sampler2D texBed;
+uniform sampler2D texNorm;
+uniform sampler2D texBump;
 uniform bool showStepDepth;
 
 in vec3 pos;
@@ -14,14 +16,20 @@ in vec3 pos;
 out vec3 color;
 
 #define PI 3.1415926535897932384626433832795
+#define SQRT2 1.4142135623730950488016887242097
 #define RENDER_DEPTH 1000
-#define MAX_DIST 1000
+#define MAX_DIST 400
 #define CLOSE_ENOUGH 0.001
 #define CLEARANCE (CLOSE_ENOUGH*200)
 #define SHADOW_SOFTNESS 25
 #define AMBIENT_LIGHT 0.001
-#define SKY_REF 0.2
 #define FRESNEL_DEFAULT 0.5
+#define BED_SCALE 0.14
+#define SEA_SCALE 0.0125
+#define SKY_BRIGHTNESS 0.07
+
+#define MAX_SAMPLES 18
+#define MIN_SAMPLES 4
 
 #define GRADIENT_DIST 0.02
 #define GRADIENT(pt, func) vec3( \
@@ -53,31 +61,32 @@ const Light LIGHTS[] = Light[](
 
 struct Material {
   vec3 col;
+  vec3 norm;
   float spec;
   float fres;
 };
 
 const Material MATERIALS[] = Material[](
   // Ground
-  Material(vec3(0.3), 10, 0),
+  Material(vec3(0.3), vec3(0), 10, 0),
   // Seabed
-  Material(vec3(0), 0.0002, 0),
+  Material(vec3(0), vec3(0), 0.0002, 0),
   // Water
-  Material(vec3(0.02, 0.04, 0.08), 1000, 1.2),
+  Material(vec3(0.02, 0.04, 0.08), vec3(0), 1000, 1.34),
   // Roof
-  Material(vec3(0.5, 0.3, 0.15), 2, 0),
+  Material(vec3(0.5, 0.3, 0.15), vec3(0), 2, 0),
   // Building
-  Material(vec3(0), 1, 0),
+  Material(vec3(0), vec3(0), 1, 0),
   // Columns
-  Material(vec3(0), 1, 0),
+  Material(vec3(0), vec3(0), 1, 0),
   // Mooring
-  Material(vec3(0), 5, 0),
+  Material(vec3(0), vec3(0), 5, 0),
   // Fence
-  Material(vec3(0), 80, 1.08),
+  Material(vec3(0), vec3(0), 80, 1.08),
   // Boat
-  Material(vec3(0.5, 0.3, 0.2), 0.1, 0),
+  Material(vec3(0.5, 0.3, 0.2), vec3(0), 0.1, 0),
   // Default
-  Material(vec3(1, 0, 0), 0, 0)
+  Material(vec3(1, 0, 0), vec3(0), 0, 0)
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,25 +125,24 @@ float vCylinder(vec3 pt, float r) {
 
 float column(vec3 pt) {
   float d1 = max(vCylinder(pt, 1), cuboid(pt, vec3(1, 7.5, 1)));
-  pt.y /= 2;
-  float cosy = cos(pt.y);
-  float siny = sin(pt.y);
+  float cosy = cos(pt.y * 0.5);
+  float siny = sin(pt.y * 0.5);
   float d2 = cuboid(
     vec3(
       pt.x * cosy + pt.z * siny,
-      pt.y * 2,
+      pt.y,
       pt.z * cosy - pt.x * siny),
     vec3(.8, 7.5, .8)
   );
   float d3 = cuboid(
     vec3(
       pt.x * siny - pt.z * cosy,
-      pt.y * 2,
+      pt.y,
       pt.z * siny + pt.x * cosy),
     vec3(.8, 7.5, .8)
   );
-  float d4 = cuboid(pt - vec3(0, -3.85, 0), vec3(1.4, 0.2, 1.4));
-  float d5 = cuboid(pt - vec3(0, 3.85, 0), vec3(1.4, 0.2, 1.4));
+  float d4 = cuboid(pt - vec3(0, -7.7, 0), vec3(1.4, 0.4, 1.4));
+  float d5 = cuboid(pt - vec3(0, 7.7, 0), vec3(1.4, 0.4, 1.4));
   return min(d1, min(d2, min(d3, min(d4, d5) - 0.2)));
 }
 
@@ -177,8 +185,8 @@ float roof(vec3 pt) {
   float r1 = cuboid(pt - vec3(0,21,-20), vec3(13, 2, 24));
   vec3 ptr1 = pt - vec3(0, 4.4, 0);
   float r2 = cuboid(vec3(
-    ptr1.x * sqrt(2) / 2 + ptr1.y * sqrt(2) / 2,
-    ptr1.y * sqrt(2) / 2 - ptr1.x * sqrt(2) / 2,
+    ptr1.x * SQRT2 / 2 + ptr1.y * SQRT2 / 2,
+    ptr1.y * SQRT2 / 2 - ptr1.x * SQRT2 / 2,
     ptr1.z
   ), vec3(20, 20, 50));
   vec3 ptr3 = vec3(
@@ -227,13 +235,13 @@ float boat(vec3 pt) {
 
   vec3 ptb3 = vec3(
     pt.x,
-    pt.y * sqrt(2) / 2 + (pt.z - 4) * sqrt(2) / 2,
-    (pt.z - 4) * sqrt(2) / 2 - pt.y * sqrt(2) / 2
+    pt.y * SQRT2 / 2 + (pt.z - 4) * SQRT2 / 2,
+    (pt.z - 4) * SQRT2 / 2 - pt.y * SQRT2 / 2
   );
 
   float b1 = cuboid(pt, vec3(2, 1, 4));
   float b2 = cuboid(pt - vec3(0, 1, 0), vec3(1.9, 1, 3.9));
-  float b3 = cuboid(ptb3, vec3(2, 1/sqrt(2), 1/sqrt(2)));
+  float b3 = cuboid(ptb3, vec3(2, 1/SQRT2, 1/SQRT2));
   float b4 = cuboid(pt - vec3(0, 2, 0), vec3(0.2, 4, 0.2));
   return min(max(min(b1, b3), -b2), b4);
 }
@@ -252,11 +260,11 @@ float water(vec3 pt) {
   float weight = 1.0;
   float w = 0.0;
   float ws = 0.0;
-  vec2 position = pt.xz / 10;
-  for(int i=0;i<8;i++){
+  vec2 position = pt.xz * 0.1;
+  for(int i=0;i<6;i++){
     vec2 p = vec2(sin(iter), cos(iter));
     vec2 res = wavedx(position, p, speed, phase, currentTime);
-    position += normalize(p) * res.y * weight * 0.05;
+    position += p * res.y * weight * 0.05;
     w += res.x * weight;
     iter += 12.0;
     ws += weight;
@@ -268,7 +276,7 @@ float water(vec3 pt) {
 }
 
 float seabed(vec3 pt) {
-  return pt.y + 10;
+  return pt.y + 6;
 }
 
 float geomNorm(vec3 pt) {
@@ -291,18 +299,52 @@ float getSDF(vec3 pt) {
   return min(geomNorm(pt), geomReflect(pt));
 }
 
-vec3 getNormal(vec3 pt) {
-  return normalize(GRADIENT(pt, getSDF));
-}
-
-Material getMaterial(vec3 pt) {
+Material getMaterial(vec3 pt, vec3 dir) {
   Material mat;
   if (ground(pt) < CLOSE_ENOUGH)
     mat = MATERIALS[0];
   else if (seabed(pt) < CLOSE_ENOUGH) {
     mat = MATERIALS[1];
-    vec4 texColor = texture(texBed, vec2(pt.x, pt.z) / 80);
+
+    float fParallaxLimit = -length(dir.xz) / dir.y;
+    fParallaxLimit *= BED_SCALE;
+
+    vec2 offsetDir = normalize(dir.xz);
+    vec2 maxOffset = fParallaxLimit * offsetDir;
+    int nSamples = int(mix(MAX_SAMPLES, MIN_SAMPLES, dot(dir, vec3(0, -1, 0))));
+    float fStepSize = 1.0 / nSamples;
+
+    float fCurrRayHeight = 1.0;
+    vec2 vCurrOffset = vec2(0);
+    vec2 vLastOffset = vec2(0);
+
+    float fLastSampledHeight = 1;
+    float fCurrSampledHeight = 1;
+
+    int currSample = 0;
+
+    while (currSample < nSamples) {
+      fCurrSampledHeight = texture(texBump, pt.xz * SEA_SCALE + vCurrOffset).r;
+
+      if (fCurrSampledHeight > fCurrRayHeight) {
+        float d1 = fCurrSampledHeight - fCurrRayHeight;
+        float d2 = (fCurrRayHeight + fStepSize) - fLastSampledHeight;
+
+        float rat = d1 / (d1+d2);
+        vCurrOffset = rat * vLastOffset + (1-rat) * vCurrOffset;
+        currSample = nSamples + 1;
+      } else {
+        currSample++;
+        fCurrRayHeight -= fStepSize;
+        vLastOffset = vCurrOffset;
+        vCurrOffset += fStepSize * maxOffset;
+        fLastSampledHeight = fCurrSampledHeight;
+      }
+    }
+
+    vec4 texColor = texture(texBed, pt.xz * SEA_SCALE + vCurrOffset);
     mat.col = pow(texColor.rgb, vec3(2.2));
+    mat.norm = normalize(texture(texNorm, pt.xz * SEA_SCALE + vCurrOffset).xzy * 2.0 - vec3(1, 0, 1));
   }
   else if (water(pt) < CLOSE_ENOUGH)
     mat = MATERIALS[2];
@@ -342,6 +384,9 @@ Material getMaterial(vec3 pt) {
   else
     mat = MATERIALS[0];
 
+  if (mat.norm == vec3(0))
+    mat.norm = normalize(GRADIENT(pt, getSDF));
+
   return mat;
 }
 
@@ -353,7 +398,7 @@ vec3 getBackground(vec3 dir) {
   float u = 0.5 + atan(dir.z, -dir.x) / (2 * PI);
   float v = 0.5 - asin(dir.y) / PI;
   vec4 texColor = texture(texSky, vec2(u, v));
-  return pow(texColor.rgb, vec3(2.2)) * 0.02;
+  return pow(texColor.rgb, vec3(2.2)) * SKY_BRIGHTNESS;
 }
 
 vec3 getRayDir() {
@@ -366,15 +411,14 @@ vec3 getRayDir() {
 ///////////////////////////////////////////////////////////////////////////////
 
 float shadow(vec3 pt, vec3 lpos) {
-  vec3 l = normalize(lpos - pt);
+  float llen = length(lpos - pt);
+  vec3 l = (lpos - pt) / llen;
 
   float kd = 1;
   int step = 0;
-  for (float t = CLEARANCE; t < length(lpos - pt) && step < RENDER_DEPTH && kd > 0.0001;) {
+  for (float t = CLEARANCE; t < llen && step < RENDER_DEPTH && kd > 0.0001;) {
     float d = geomNorm(pt + t * l);
-    if (d < CLOSE_ENOUGH) {
-      kd = 0;
-    } else if (t + d < length(lpos - pt)){
+    if (t + d < llen) {
       // Soften shadows
       kd = min(kd, SHADOW_SOFTNESS * d / t);
     }
@@ -390,10 +434,11 @@ vec3 shade(vec3 eye, vec3 pt, vec3 n, vec3 c, float is) {
   
   for (int i = 0; i < LIGHTS.length(); i++) {
     vec3 l = LIGHTS[i].pos - pt;
-    if (length(l) > LIGHTS[i].radius * 6)
+    float llen = length(l);
+    if (llen > LIGHTS[i].radius * 6)
       continue;
 
-    vec3 ln = normalize(l);
+    vec3 ln = l / llen;
     float dt = dot(n, ln);
     vec3 r = 2 * n * dt - ln;
     vec3 v = normalize(eye - pt);
@@ -415,13 +460,12 @@ vec3 shade(vec3 eye, vec3 pt, vec3 n, vec3 c, float is) {
 }
 
 vec3 illuminate(vec3 camPos, vec3 rayDir, vec3 pt, vec3 rLCol, vec3 rFCol) {
-  vec3 n = getNormal(pt);
-  Material m = getMaterial(pt);
+  Material m = getMaterial(pt, rayDir);
 
   float kr = 0;
 
   if (m.fres > 0) {
-    float cosi = dot(n, normalize(pt - camPos)); 
+    float cosi = dot(m.norm, normalize(pt - camPos)); 
     // Compute sini using Snell's law
     float sint = 1 / m.fres * sqrt(max(0.f, 1 - cosi * cosi)); 
     // Total internal reflection
@@ -440,7 +484,7 @@ vec3 illuminate(vec3 camPos, vec3 rayDir, vec3 pt, vec3 rLCol, vec3 rFCol) {
   if (m.fres > 1.1) {
     return rLCol * kr + rFCol * (1 - kr);
   } else {
-    return shade(camPos, pt, n, m.col, m.spec) + rLCol * kr;
+    return shade(camPos, pt, m.norm, m.col, m.spec) + rLCol * kr;
   }
 }
 
@@ -472,14 +516,16 @@ vec3 raymarch(vec3 camPos, vec3 rayDir) {
 
     if (geomReflect(hitPos) < CLOSE_ENOUGH) {
       // Refraction ray
-      vec3 n = normalize(GRADIENT(hitPos, getSDF));
+      Material m = getMaterial(hitPos, rayDir);
+      vec3 n = m.norm;
 
       float cosi = -dot(rayDir, n); 
-      float eta = 1 / getMaterial(hitPos).fres; 
-      float k = 1 - eta * eta * (1 - cosi * cosi); 
-      vec3 refDir = k < 0 ? vec3(0) : normalize(eta * rayDir + (eta * cosi - sqrt(k)) * n); 
+      float eta = 1 / m.fres; 
+      float k = 1 - eta * eta * (1 - cosi * cosi);  
 
-      if (length(refDir) > 0.5) {
+      if (k > 0) {
+        vec3 refDir = normalize(eta * rayDir + (eta * cosi - sqrt(k)) * n);
+
         int step = 0;
         float t = 0;
         for (float d = 1000; step < RENDER_DEPTH && d > CLOSE_ENOUGH && t <= MAX_DIST; t += abs(d)) {
@@ -487,16 +533,12 @@ vec3 raymarch(vec3 camPos, vec3 rayDir) {
           step++;
         }
 
-        if (step == RENDER_DEPTH || t > MAX_DIST) {
-          rFCol = getBackground(refDir);
-        } else {
-          rFCol = illuminate(hitPos, refDir, hitPos + t * refDir, vec3(FRESNEL_DEFAULT), vec3(0));
-        }
+        rFCol = illuminate(hitPos, refDir, hitPos + t * refDir, vec3(0), vec3(0));
       }
 
       // Reflection ray
       vec3 v = hitPos - camPos;
-      refDir = normalize(v - 2 * n * dot(v, n));
+      vec3 refDir = normalize(v - 2 * n * dot(v, n));
 
       step = 0;
       t = 0;
@@ -506,9 +548,9 @@ vec3 raymarch(vec3 camPos, vec3 rayDir) {
       }
 
       if (step == RENDER_DEPTH || t > MAX_DIST) {
-        rLCol = getBackground(refDir) * SKY_REF;
+        rLCol = getBackground(refDir);
       } else {
-        rLCol = illuminate(hitPos, refDir, hitPos + t * refDir, vec3(FRESNEL_DEFAULT), vec3(0));
+        rLCol = illuminate(hitPos, refDir, hitPos + t * refDir, vec3(0), vec3(0));
       }
     }
     return illuminate(camPos, rayDir, hitPos, rLCol, rFCol);
