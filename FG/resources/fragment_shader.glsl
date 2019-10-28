@@ -24,18 +24,30 @@ out vec3 color;
 #define SHADOW_SOFTNESS 25
 #define AMBIENT_LIGHT 0.001
 #define FRESNEL_DEFAULT 0.5
-#define BED_SCALE 0.14
-#define SEA_SCALE 0.0125
-#define SKY_BRIGHTNESS 0.07
+#define BED_SCALE 0.1
+#define SEA_SCALE 0.02
+#define SKY_BRIGHTNESS 0.08
 
 #define MAX_SAMPLES 18
 #define MIN_SAMPLES 4
 
-#define GRADIENT_DIST 0.02
+#define GRADIENT_DIST 0.005
 #define GRADIENT(pt, func) vec3( \
     func(vec3(pt.x + GRADIENT_DIST, pt.y, pt.z)) - func(vec3(pt.x - GRADIENT_DIST, pt.y, pt.z)), \
     func(vec3(pt.x, pt.y + GRADIENT_DIST, pt.z)) - func(vec3(pt.x, pt.y - GRADIENT_DIST, pt.z)), \
     func(vec3(pt.x, pt.y, pt.z + GRADIENT_DIST)) - func(vec3(pt.x, pt.y, pt.z - GRADIENT_DIST)))
+
+
+#define DELT 0.5
+
+#define AABB(fn, pt, x, y, z, dx, dy, dz) \
+  (cuboid(pt - vec3(x,y,z), vec3(dx + DELT,dy + DELT,dz + DELT)) < 0 \
+  ? fn(pt) \
+  : cuboid(pt - vec3(x,y,z), vec3(dx,dy,dz))) \
+
+//#define AABB(fn, pt, x, y, z, dx, dy, dz) fn(pt)
+
+
 
 struct Light {
   vec3 pos;
@@ -224,7 +236,7 @@ float mooring(vec3 pt) {
 
 float boat(vec3 pt) {
   pt -= vec3(7, 0, 24);
-  float a = 0.1 * sin(currentTime * 1.5);
+  float a = 0.08 * sin(currentTime * 1.5);
   float sa = sin(a);
   float ca = cos(a);
   pt = vec3(
@@ -257,14 +269,14 @@ float water(vec3 pt) {
   float iter = 0.0;
   float phase = 6.0;
   float speed = 2.0;
-  float weight = 1.0;
+  float weight = 1;
   float w = 0.0;
   float ws = 0.0;
   vec2 position = pt.xz * 0.1;
-  for(int i=0;i<6;i++){
+  for(int i=0;i<10;i++){
     vec2 p = vec2(sin(iter), cos(iter));
     vec2 res = wavedx(position, p, speed, phase, currentTime);
-    position += p * res.y * weight * 0.05;
+    position += p * res.y * weight * 0.02;
     w += res.x * weight;
     iter += 12.0;
     ws += weight;
@@ -272,7 +284,7 @@ float water(vec3 pt) {
     phase *= 1.18;
     speed *= 1.07;
   }
-  return w / ws + pt.y;
+  return 0.4 * w / ws + pt.y;
 }
 
 float seabed(vec3 pt) {
@@ -281,14 +293,15 @@ float seabed(vec3 pt) {
 
 float geomNorm(vec3 pt) {
   return min(
-    ground(pt),
-    min(columns(pt),
-    min(building(pt),
-    min(roof(pt),
-    min(mooring(pt),
-    min(boat(pt),
-    min(seabed(pt),
-    fence(pt))))))));
+    AABB(ground, pt, 0, 2, -8, 19, 3, 36),
+    min(AABB(columns, pt, 0, 11.5, 0, 12, 7.5, 2),
+    min(AABB(building, pt, 0, 11.5,-24, 12, 7.5, 18),
+    min(AABB(roof, pt, 0,21,-20, 13, 2, 24),
+    min(AABB(mooring, pt, 2.6, 3, 24, 1, 3, 3),
+    min(AABB(boat, pt, 7, 2, 24, 2, 4, 5),
+    min(AABB(fence, pt, 0, -2, -10, 29, 10, 53),
+    seabed(pt)
+    )))))));
 }
 
 float geomReflect(vec3 pt) {
